@@ -22,8 +22,13 @@ describe("storage", () => {
   });
 
   it("throws when a bag item is missing mealType", () => {
-    window.localStorage.setItem(KEYS.bag, JSON.stringify([{ id: "bad", ingredientIds: [], quantity: 1 }]));
+    window.localStorage.setItem(KEYS.bag, JSON.stringify({ items: [{ id: "bad", ingredientIds: [], quantity: 1 }], plan: 5 }));
     expect(() => readBag()).toThrow(/mealType/);
+  });
+
+  it("stores plan and promo with the bag", () => {
+    writeBag([item]);
+    expect(JSON.parse(window.localStorage.getItem(KEYS.bag) as string)).toEqual({ items: [item], plan: 5 });
   });
 
   it("clears every Andrew's key", () => {

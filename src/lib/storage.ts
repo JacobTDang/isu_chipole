@@ -78,15 +78,10 @@ export function readUser(): User | null {
 export function writeUser(user: User | null): void { write(KEYS.user, user); }
 
 export function readBag(): BagItem[] {
-  const value = parse(KEYS.bag);
-  if (value === null) return [];
-  if (!Array.isArray(value)) return invalid(KEYS.bag, "bag must be an array");
-  const bad = value.find((item) => !isBagItem(item));
-  if (bad !== undefined) return invalid(KEYS.bag, isSelection(bad) ? "id is invalid" : selectionReason(bad));
-  return value;
+  return readBagState().items;
 }
 
-export function writeBag(items: BagItem[]): void { write(KEYS.bag, items); }
+export function writeBag(items: BagItem[]): void { writeBagState({ items, plan: 5 }); }
 
 export function readOrders(): Order[] {
   const value = parse(KEYS.orders);
@@ -109,10 +104,12 @@ export function writeSaved(saved: Selection[]): void { write(KEYS.saved, saved);
 export function readBagState(): BagState {
   const value = parse(KEYS.bag);
   if (value === null) return { items: [], plan: 5 };
-  if (!isObject(value) || !Array.isArray(value.items) || !value.items.every(isBagItem) || !isPlan(value.plan)
-    || (value.promo !== undefined && !isString(value.promo))) {
-    return invalid(KEYS.bag, "bag state shape is invalid");
-  }
+  if (!isObject(value)) return invalid(KEYS.bag, "bag state must be an object");
+  if (!Array.isArray(value.items)) return invalid(KEYS.bag, "items must be an array");
+  const bad = value.items.find((item) => !isBagItem(item));
+  if (bad !== undefined) return invalid(KEYS.bag, isSelection(bad) ? "id is invalid" : selectionReason(bad));
+  if (!isPlan(value.plan)) return invalid(KEYS.bag, "plan is invalid");
+  if (value.promo !== undefined && !isString(value.promo)) return invalid(KEYS.bag, "promo is invalid");
   return value as BagState;
 }
 

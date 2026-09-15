@@ -62,17 +62,12 @@ struct ConfirmationView: View {
                     .multilineTextAlignment(.center)
                     .padding(.top, 4)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(order.id)
-                        .font(.display(28))
-                        .foregroundStyle(Color.ink)
-                        .padding(.horizontal, 18)
-                    TicketView(
-                        lines: ticketLines(order),
-                        total: TicketLine(label: "Total", amount: Pricing.money(order.total))
-                    ) {
-                        EmptyView()
-                    }
+                TicketView(
+                    title: order.id,
+                    lines: ticketLines(order),
+                    total: TicketLine(label: "Total", amount: Pricing.money(order.total))
+                ) {
+                    EmptyView()
                 }
                 .padding(.top, 32)
                 .opacity(revealed ? 1 : 0)

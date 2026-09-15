@@ -201,7 +201,7 @@ private struct BuilderForm: View {
     }
 
     private var ticketBar: some View {
-        TicketView(lines: [ticketLine], total: nil) {
+        TicketView(lines: [], prominentLine: ticketLine) {
             Button(isEditing ? "Save changes" : "Add to bag") {
                 submit()
             }

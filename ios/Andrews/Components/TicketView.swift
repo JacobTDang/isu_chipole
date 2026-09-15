@@ -14,24 +14,54 @@ struct TicketLine: Identifiable {
 }
 
 struct TicketView<Content: View>: View {
+    let title: String?
     let lines: [TicketLine]
     let total: TicketLine?
+    let prominentLine: TicketLine?
     private let footer: Content
 
+    /// - Parameters:
+    ///   - title: Display-weight heading above the lines, such as an order id.
+    ///   - total: Rendered below a cardinal dashed rule in display weight.
+    ///   - prominentLine: A single line whose amount is display weight with no
+    ///     rule, for a live price in a sticky bar.
     init(
+        title: String? = nil,
         lines: [TicketLine],
-        total: TicketLine?,
+        total: TicketLine? = nil,
+        prominentLine: TicketLine? = nil,
         @ViewBuilder footer: () -> Content
     ) {
+        self.title = title
         self.lines = lines
         self.total = total
+        self.prominentLine = prominentLine
         self.footer = footer()
     }
 
     var body: some View {
         VStack(spacing: 12) {
+            if let title {
+                Text(title)
+                    .font(.display(28))
+                    .foregroundStyle(Color.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             ForEach(lines) { line in
                 ticketLine(line)
+            }
+
+            if let prominentLine {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(prominentLine.label)
+                        .font(.ticket(13))
+                    Spacer(minLength: 12)
+                    Text(prominentLine.amount)
+                        .font(.display(24))
+                }
+                .foregroundStyle(Color.ink)
+                .monospacedDigit()
             }
 
             if let total {

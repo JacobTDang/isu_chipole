@@ -77,12 +77,6 @@ export function readUser(): User | null {
 
 export function writeUser(user: User | null): void { write(KEYS.user, user); }
 
-export function readBag(): BagItem[] {
-  return readBagState().items;
-}
-
-export function writeBag(items: BagItem[]): void { writeBagState({ items, plan: 5 }); }
-
 export function readOrders(): Order[] {
   const value = parse(KEYS.orders);
   if (value === null) return [];

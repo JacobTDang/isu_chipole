@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-cardinal: #c8102e;
+  --color-cardinal-deep: #8e0b21;
+  --color-gold: #f1be48;
+  --color-cream: #fbf5e6;
+  --color-card: #fffdf8;
+  --color-ink: #2b1114;
+  --color-ink-soft: #7a5c60;
+  --color-line: #eadfc8;
+  --color-veg: #5b7a3a;
+  --color-tabletop: #efe6d2;
+  --font-display: var(--font-bricolage);
+  --font-body: var(--font-instrument);
+  --font-ticket: var(--font-jetbrains);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--color-tabletop);
+  color: var(--color-ink);
+  font-family: var(--font-instrument), sans-serif;
+  font-size: 17px;
+  font-feature-settings: "tnum";
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-cardinal);
+  outline-offset: 2px;
+}
+
+.ticket-edge {
+  -webkit-mask-image: radial-gradient(circle at 8px 0, transparent 7px, black 7.5px);
+  -webkit-mask-position: -8px 0;
+  -webkit-mask-size: 16px 100%;
+  mask-image: radial-gradient(circle at 8px 0, transparent 7px, black 7.5px);
+  mask-position: -8px 0;
+  mask-size: 16px 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

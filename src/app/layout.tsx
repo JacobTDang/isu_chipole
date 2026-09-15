@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Bricolage_Grotesque,
   Instrument_Sans,
@@ -33,6 +33,25 @@ const ticket = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Andrew's",
   description: "Meal prep for Cyclones. Pick up on campus.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Andrew's",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#C8102E",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

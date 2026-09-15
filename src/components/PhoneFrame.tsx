@@ -23,7 +23,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
   const scale = usePhoneScale();
   const scaleVariable = { "--phone-scale": scale } as CSSProperties;
   return (
-    <div className="min-h-dvh bg-cream md:flex md:h-dvh md:min-h-0 md:items-center md:justify-center md:overflow-hidden md:bg-tabletop md:p-6">
+    <div className="h-dvh min-h-0 overflow-hidden bg-cream md:flex md:items-center md:justify-center md:bg-tabletop md:p-6">
       <div
         data-phone-frame-wrapper
         className="md:h-[calc(844px*var(--phone-scale))] md:w-[calc(390px*var(--phone-scale))]"
@@ -31,7 +31,7 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
       >
         <div
           data-phone-frame
-          className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-cream pt-[max(16px,env(safe-area-inset-top))] pb-[calc(83px+env(safe-area-inset-bottom))] md:h-[844px] md:min-h-0 md:w-[390px] md:origin-top md:rounded-[48px] md:border md:border-line md:pt-[54px] md:pb-[83px] md:shadow-2xl"
+          className="relative flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-cream pt-[max(16px,env(safe-area-inset-top))] pb-[calc(83px+env(safe-area-inset-bottom))] md:h-[844px] md:w-[390px] md:origin-top md:rounded-[48px] md:border md:border-line md:pt-[54px] md:pb-[83px] md:shadow-2xl"
           style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}
         >
           <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>

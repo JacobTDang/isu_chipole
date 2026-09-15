@@ -18,7 +18,15 @@ export function BagProvider({ children }: { children: ReactNode }) {
   const [plan, setPlanState] = useState<PlanSize>(5);
   const [promo, setPromoState] = useState<string>();
   const [ready, setReady] = useState(false);
-  useEffect(() => { const state = readBagState(); setItems(state.items); setPlanState(state.plan); setPromoState(state.promo); setReady(true); }, []);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      const state = readBagState();
+      setItems(state.items); setPlanState(state.plan); setPromoState(state.promo); setReady(true);
+    });
+    return () => { active = false; };
+  }, []);
   useEffect(() => { if (ready) writeBagState({ items, plan, ...(promo ? { promo } : {}) }); }, [items, plan, promo, ready]);
 
   const value = useMemo<BagValue>(() => ({

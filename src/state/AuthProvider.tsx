@@ -10,7 +10,11 @@ const AuthContext = createContext<AuthValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
-  useEffect(() => { setUser(readUser()); setReady(true); }, []);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) { setUser(readUser()); setReady(true); } });
+    return () => { active = false; };
+  }, []);
 
   const value = useMemo<AuthValue>(() => ({
     user,

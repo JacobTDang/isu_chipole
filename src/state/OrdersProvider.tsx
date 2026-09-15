@@ -15,7 +15,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [saved, setSaved] = useState<Selection[]>([]);
   const [ready, setReady] = useState(false);
-  useEffect(() => { setOrders(readOrders()); setSaved(readSaved()); setReady(true); }, []);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => { if (active) { setOrders(readOrders()); setSaved(readSaved()); setReady(true); } });
+    return () => { active = false; };
+  }, []);
 
   const value = useMemo<OrdersValue>(() => ({
     orders, saved, ready,

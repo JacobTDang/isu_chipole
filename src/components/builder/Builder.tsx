@@ -81,7 +81,7 @@ export function Builder({ initial, title, image, editingId }: { initial: Selecti
 
   return (
     <div className="pb-4">
-      <InlineNav title={title} backHref="/order" />
+      <InlineNav title={title} backHref={editingId ? "/bag" : "/order"} />
       <div className="relative h-[200px] overflow-hidden bg-card">
         <MealImage src={image} alt={title} fallbackLetter={title} />
         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-ink/45 to-transparent" />

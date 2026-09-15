@@ -1,7 +1,43 @@
 import SwiftUI
 
 struct TimeSheet: View {
+    @Binding var selection: String
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
-        Text("Pickup time").font(.body(17, weight: .semibold))
+        NavigationStack {
+            List(Menu.timeSlots, id: \.self) { slot in
+                Button {
+                    selection = slot
+                    dismiss()
+                } label: {
+                    HStack(spacing: 12) {
+                        Text(slot)
+                            .font(.body(17, weight: .semibold))
+                            .foregroundStyle(Color.ink)
+                        Spacer(minLength: 12)
+                        SelectionCheck(selected: slot == selection)
+                    }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .listRowBackground(Color.card)
+                .accessibilityAddTraits(slot == selection ? .isSelected : [])
+            }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Color.cream)
+            .navigationTitle("Pickup time")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }

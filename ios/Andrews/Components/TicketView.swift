@@ -72,6 +72,8 @@ struct TicketView<Content: View>: View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(line.label)
                 .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+                .layoutPriority(1)
             Rectangle()
                 .stroke(
                     line.muted ? Color.line : Color.inkSoft,
@@ -80,6 +82,7 @@ struct TicketView<Content: View>: View {
                 .frame(height: 1)
             Text(line.amount)
                 .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
         }
         .font(.ticket(13))
         .foregroundStyle(line.muted ? Color.inkSoft : Color.ink)

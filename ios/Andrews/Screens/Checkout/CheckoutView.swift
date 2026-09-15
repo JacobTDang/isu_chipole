@@ -172,7 +172,7 @@ struct CheckoutView: View {
         if promoDiscount > 0 {
             lines.append(TicketLine(label: "Promo (10%)", amount: "−\(Pricing.money(promoDiscount))"))
         }
-        lines.append(TicketLine(label: "Tax", amount: Pricing.money(totals.tax), muted: true))
+        lines.append(TicketLine(label: "Tax · 7%", amount: Pricing.money(totals.tax), muted: true))
         return lines
     }
 

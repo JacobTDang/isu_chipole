@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-enum Tab {
+enum Tab: Hashable {
     case home
     case order
     case bag

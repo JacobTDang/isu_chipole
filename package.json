@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "node --no-experimental-webstorage node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "lucide-react": "^1.46.0",

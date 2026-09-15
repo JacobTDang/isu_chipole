@@ -16,10 +16,10 @@ export function Ticket({ title, lines = [], total, children }: {
   title?: string; lines?: TicketLine[]; total?: { label: ReactNode; amount: ReactNode }; children?: ReactNode;
 }) {
   return (
-    <section className="ticket-edge bg-card px-4 pt-6 pb-4 font-ticket text-[13px] shadow-lg">
+    <section className="ticket-edge bg-card px-4 pt-6 pb-4 shadow-lg">
       {title && <h2 className="mb-4 font-display text-[22px] font-extrabold tracking-[-0.02em] text-ink">{title}</h2>}
-      <div className="space-y-2">{lines.map((line, index) => <Line key={index} {...line} />)}</div>
-      {total && <div className="mt-4 border-t-2 border-dashed border-cardinal pt-3 text-[15px] font-semibold"><Line {...total} /></div>}
+      <div className="space-y-2 font-ticket text-[13px]">{lines.map((line, index) => <Line key={index} {...line} />)}</div>
+      {total && <div className="mt-4 border-t-2 border-dashed border-cardinal pt-3 font-ticket text-[15px] font-semibold"><Line {...total} /></div>}
       {children && <div className="mt-4">{children}</div>}
     </section>
   );

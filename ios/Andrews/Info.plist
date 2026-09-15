@@ -24,9 +24,9 @@
 	<dict/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Fonts/BricolageGrotesque.ttf</string>
-		<string>Fonts/InstrumentSans.ttf</string>
-		<string>Fonts/JetBrainsMono.ttf</string>
+		<string>BricolageGrotesque.ttf</string>
+		<string>InstrumentSans.ttf</string>
+		<string>JetBrainsMono.ttf</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>

@@ -48,6 +48,15 @@ body {
   mask-size: 16px 100%;
 }
 
+@keyframes bag-badge-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+.bag-badge-bounce {
+  animation: bag-badge-bounce 300ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

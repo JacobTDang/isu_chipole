@@ -24,7 +24,7 @@ describe("storage", () => {
 
   it("throws when stored JSON is corrupt", () => {
     window.localStorage.setItem(KEYS.bag, "{oops");
-    expect(() => readBagState()).toThrow(/andrews\.bag/);
+    expect(() => readBagState()).toThrow(/preppal\.bag/);
   });
 
   it("throws when a bag item is missing mealType", () => {
@@ -49,7 +49,7 @@ describe("storage", () => {
 
   it("throws when a delivery order has no address", () => {
     window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...legacyOrder, fulfillment: "delivery", address: null, deliveryFee: 2.99 }]));
-    expect(() => readOrders()).toThrow(/andrews\.orders/);
+    expect(() => readOrders()).toThrow(/preppal\.orders/);
   });
 
   it("clears every PrepPal key", () => {

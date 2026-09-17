@@ -24,8 +24,9 @@ export function mealCount(items: BagItem[]): number {
 
 export function planDiscountRate(plan: PlanSize, count: number): number {
   if (count < plan) return 0;
-  if (plan === 7) return 0.05;
-  if (plan === 10) return 0.1;
+  if (plan === 5) return 0.15;
+  if (plan === 7) return 0.2;
+  if (plan === 10) return 0.25;
   return 0;
 }
 

@@ -53,9 +53,11 @@ struct PricingTests {
 
     @Test
     func appliesPlanDiscountsOnlyWhenFilled() {
+        #expect(Pricing.planDiscountRate(.five, count: 4) == 0)
+        #expect(Pricing.planDiscountRate(.five, count: 5) == 0.15)
         #expect(Pricing.planDiscountRate(.seven, count: 6) == 0)
-        #expect(Pricing.planDiscountRate(.seven, count: 7) == 0.05)
-        #expect(Pricing.planDiscountRate(.ten, count: 12) == 0.10)
+        #expect(Pricing.planDiscountRate(.seven, count: 7) == 0.20)
+        #expect(Pricing.planDiscountRate(.ten, count: 12) == 0.25)
     }
 
     @Test
@@ -74,9 +76,9 @@ struct PricingTests {
             promo: "CYCLONE10"
         )
         #expect(totals.subtotal == 85.00)
-        #expect(totals.discount == 17.00)
-        #expect(totals.tax == Decimal(string: "4.76"))
-        #expect(totals.total == Decimal(string: "72.76"))
+        #expect(totals.discount == 29.75)
+        #expect(totals.tax == Decimal(string: "3.87"))
+        #expect(totals.total == Decimal(string: "59.12"))
     }
 
     @Test
@@ -90,10 +92,10 @@ struct PricingTests {
             deliveryFee: Pricing.deliveryFee
         )
         #expect(totals.subtotal == 85.00)
-        #expect(totals.discount == 17.00)
-        #expect(totals.tax == Decimal(string: "4.76"))
+        #expect(totals.discount == 29.75)
+        #expect(totals.tax == Decimal(string: "3.87"))
         #expect(totals.delivery == Decimal(string: "2.99"))
-        #expect(totals.total == Decimal(string: "75.75"))
+        #expect(totals.total == Decimal(string: "62.11"))
     }
 
     @Test

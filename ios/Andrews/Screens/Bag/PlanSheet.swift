@@ -4,11 +4,11 @@ extension PlanSize {
     var discountLabel: String {
         switch self {
         case .five:
-            return "No discount"
+            return "Save 15%"
         case .seven:
-            return "Save 5%"
+            return "Save 20%"
         case .ten:
-            return "Save 10%"
+            return "Save 25%"
         }
     }
 }

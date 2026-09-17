@@ -16,9 +16,11 @@ describe("pricing", () => {
     expect(mealCount(items)).toBe(2);
   });
   it("applies plan discounts only when filled", () => {
+    expect(planDiscountRate(5, 4)).toBe(0);
+    expect(planDiscountRate(5, 5)).toBe(0.15);
     expect(planDiscountRate(7, 6)).toBe(0);
-    expect(planDiscountRate(7, 7)).toBe(0.05);
-    expect(planDiscountRate(10, 12)).toBe(0.1);
+    expect(planDiscountRate(7, 7)).toBe(0.2);
+    expect(planDiscountRate(10, 12)).toBe(0.25);
   });
   it("recognizes the promo code case-insensitively", () => {
     expect(promoRate("cyclone10")).toBe(0.1);
@@ -26,12 +28,12 @@ describe("pricing", () => {
   });
   it("calculates order totals", () => {
     const items: BagItem[] = [{ ...bowl, id: "ten", quantity: 10 }];
-    expect(orderTotals(items, 10, "CYCLONE10")).toEqual({ subtotal: 85, discount: 17, tax: 4.76, delivery: 0, total: 72.76 });
+    expect(orderTotals(items, 10, "CYCLONE10")).toEqual({ subtotal: 85, discount: 29.75, tax: 3.87, delivery: 0, total: 59.12 });
   });
   it("adds the untaxed delivery fee to the total", () => {
     const items: BagItem[] = [{ ...bowl, id: "ten", quantity: 10 }];
     expect(DELIVERY_FEE).toBe(2.99);
-    expect(orderTotals(items, 10, "CYCLONE10", DELIVERY_FEE)).toEqual({ subtotal: 85, discount: 17, tax: 4.76, delivery: 2.99, total: 75.75 });
+    expect(orderTotals(items, 10, "CYCLONE10", DELIVERY_FEE)).toEqual({ subtotal: 85, discount: 29.75, tax: 3.87, delivery: 2.99, total: 62.11 });
   });
   it("returns money with at most two decimal places", () => {
     const values = Object.values(orderTotals([{ ...bowl, id: "three", quantity: 3 }], 5));

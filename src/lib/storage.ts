@@ -1,6 +1,13 @@
 import type { BagItem, Fulfillment, MealTypeId, Order, PickupLocation, PlanSize, Selection, User } from "../data/types";
 
 export const KEYS = {
+  user: "preppal.user",
+  bag: "preppal.bag",
+  orders: "preppal.orders",
+  saved: "preppal.saved",
+} as const;
+
+export const LEGACY_KEYS = {
   user: "andrews.user",
   bag: "andrews.bag",
   orders: "andrews.orders",
@@ -57,12 +64,12 @@ function migrateOrder(value: unknown): unknown {
 }
 
 function invalid(key: string, reason: string): never {
-  throw new Error(`andrews storage: ${key} is invalid: ${reason}`);
+  throw new Error(`preppal storage: ${key} is invalid: ${reason}`);
 }
 
-function parse(key: string): unknown | null {
+function parse(key: string, legacyKey?: string): unknown | null {
   if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(key);
+  const raw = window.localStorage.getItem(key) ?? (legacyKey ? window.localStorage.getItem(legacyKey) : null);
   if (raw === null) return null;
   try {
     return JSON.parse(raw) as unknown;
@@ -78,7 +85,7 @@ function write(key: string, value: unknown | null): void {
 }
 
 export function readUser(): User | null {
-  const value = parse(KEYS.user);
+  const value = parse(KEYS.user, LEGACY_KEYS.user);
   if (value === null) return null;
   if (!isUser(value)) return invalid(KEYS.user, "user shape is invalid");
   return value;
@@ -87,7 +94,7 @@ export function readUser(): User | null {
 export function writeUser(user: User | null): void { write(KEYS.user, user); }
 
 export function readOrders(): Order[] {
-  const value = parse(KEYS.orders);
+  const value = parse(KEYS.orders, LEGACY_KEYS.orders);
   if (value === null) return [];
   if (!Array.isArray(value)) return invalid(KEYS.orders, "orders shape is invalid");
   const orders = value.map(migrateOrder);
@@ -98,7 +105,7 @@ export function readOrders(): Order[] {
 export function writeOrders(orders: Order[]): void { write(KEYS.orders, orders); }
 
 export function readSaved(): Selection[] {
-  const value = parse(KEYS.saved);
+  const value = parse(KEYS.saved, LEGACY_KEYS.saved);
   if (value === null) return [];
   if (!Array.isArray(value) || !value.every(isSelection)) return invalid(KEYS.saved, "saved meals shape is invalid");
   return value;
@@ -107,7 +114,7 @@ export function readSaved(): Selection[] {
 export function writeSaved(saved: Selection[]): void { write(KEYS.saved, saved); }
 
 export function readBagState(): BagState {
-  const value = parse(KEYS.bag);
+  const value = parse(KEYS.bag, LEGACY_KEYS.bag);
   if (value === null) return { items: [], plan: 5 };
   if (!isObject(value)) return invalid(KEYS.bag, "bag state must be an object");
   if (!Array.isArray(value.items)) return invalid(KEYS.bag, "items must be an array");
@@ -123,4 +130,7 @@ export function writeBagState(state: BagState): void { write(KEYS.bag, state); }
 export function clearAll(): void {
   if (typeof window === "undefined") return;
   for (const key of Object.values(KEYS)) window.localStorage.removeItem(key);
+  for (const key of Object.values(LEGACY_KEYS)) window.localStorage.removeItem(key);
+  window.localStorage.removeItem("preppal.prefs");
+  window.localStorage.removeItem("andrews.prefs");
 }

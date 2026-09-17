@@ -54,18 +54,18 @@ describe("account preferences", () => {
   it("throws when stored preferences are corrupt", () => {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify({ vegetarian: "yes" }));
 
-    expect(() => readPreferences()).toThrow(/andrews\.prefs/);
+    expect(() => readPreferences()).toThrow(/preppal\.prefs/);
   });
 
   it("throws when a new field is present with the wrong type", () => {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify({ ...defaults, budget: "10" }));
-    expect(() => readPreferences()).toThrow(/andrews\.prefs/);
+    expect(() => readPreferences()).toThrow(/preppal\.prefs/);
 
     window.localStorage.setItem(PREFS_KEY, JSON.stringify({ ...defaults, allergies: ["peanut"] }));
-    expect(() => readPreferences()).toThrow(/andrews\.prefs/);
+    expect(() => readPreferences()).toThrow(/preppal\.prefs/);
 
     window.localStorage.setItem(PREFS_KEY, JSON.stringify({ ...defaults, goal: "bulk" }));
-    expect(() => readPreferences()).toThrow(/andrews\.prefs/);
+    expect(() => readPreferences()).toThrow(/preppal\.prefs/);
   });
 
   it("clears stored preferences", () => {

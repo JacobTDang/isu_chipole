@@ -8,9 +8,9 @@ import { useBag } from "../../state/BagProvider";
 import { Sheet } from "../Sheet";
 
 const options: Array<{ size: PlanSize; discount: string }> = [
-  { size: 5, discount: "No discount" },
-  { size: 7, discount: "Save 5%" },
-  { size: 10, discount: "Save 10%" },
+  { size: 5, discount: "Save 15%" },
+  { size: 7, discount: "Save 20%" },
+  { size: 10, discount: "Save 25%" },
 ];
 
 export function PlanCard() {

@@ -1,7 +1,8 @@
 import { ALLERGENS } from "../data/menu";
 import type { Allergen } from "../data/types";
 
-export const PREFS_KEY = "andrews.prefs";
+export const PREFS_KEY = "preppal.prefs";
+export const LEGACY_PREFS_KEY = "andrews.prefs";
 
 export type Goal = "muscle" | "lose" | "maintain";
 export const GOALS: Goal[] = ["muscle", "lose", "maintain"];
@@ -25,7 +26,7 @@ export const EMPTY_PREFERENCES: Preferences = {
 };
 
 function invalid(reason: string): never {
-  throw new Error(`andrews storage: ${PREFS_KEY} is invalid: ${reason}`);
+  throw new Error(`preppal storage: ${PREFS_KEY} is invalid: ${reason}`);
 }
 
 const isAllergen = (value: unknown): value is Allergen => ALLERGENS.includes(value as Allergen);
@@ -49,7 +50,7 @@ function migrate(value: unknown): Preferences {
 
 export function readPreferences(): Preferences {
   if (typeof window === "undefined") return EMPTY_PREFERENCES;
-  const raw = window.localStorage.getItem(PREFS_KEY);
+  const raw = window.localStorage.getItem(PREFS_KEY) ?? window.localStorage.getItem(LEGACY_PREFS_KEY);
   if (raw === null) return EMPTY_PREFERENCES;
   let value: unknown;
   try {
@@ -68,4 +69,5 @@ export function writePreferences(preferences: Preferences): void {
 export function clearPreferences(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(PREFS_KEY);
+  window.localStorage.removeItem(LEGACY_PREFS_KEY);
 }

@@ -24,11 +24,11 @@ enum Pricing {
         guard count >= plan.rawValue else { return 0 }
         switch plan {
         case .five:
-            return 0
+            return 0.15
         case .seven:
-            return 0.05
+            return 0.20
         case .ten:
-            return 0.10
+            return 0.25
         }
     }
 

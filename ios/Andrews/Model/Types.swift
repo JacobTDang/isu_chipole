@@ -15,6 +15,19 @@ enum IngredientTag: String, Codable, Hashable {
     case spicy
 }
 
+enum Allergen: String, Codable, CaseIterable, Hashable {
+    case dairy
+    case gluten
+    case nuts
+    case soy
+    case eggs
+    case fish
+
+    var label: String {
+        rawValue.capitalized
+    }
+}
+
 struct Ingredient: Codable, Identifiable, Hashable {
     let id: String
     let name: String
@@ -23,6 +36,27 @@ struct Ingredient: Codable, Identifiable, Hashable {
     let calories: Int
     let protein: Int
     let tags: [IngredientTag]
+    let allergens: [Allergen]
+
+    init(
+        id: String,
+        name: String,
+        group: IngredientGroup,
+        price: Decimal,
+        calories: Int,
+        protein: Int,
+        tags: [IngredientTag],
+        allergens: [Allergen] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.group = group
+        self.price = price
+        self.calories = calories
+        self.protein = protein
+        self.tags = tags
+        self.allergens = allergens
+    }
 }
 
 enum MealTypeId: String, Codable, CaseIterable, Identifiable, Hashable {
@@ -108,10 +142,34 @@ struct User: Codable, Hashable {
     let firstName: String
 }
 
+enum Goal: String, Codable, CaseIterable, Hashable {
+    case muscle
+    case lose
+    case maintain
+}
+
 struct Preferences: Codable, Hashable {
     var vegetarian = false
     var highProtein = false
     var glutenFree = false
+    var allergies: [Allergen] = []
+    var goal: Goal? = nil
+    var budget: Decimal? = nil
+}
+
+extension Preferences {
+    /// Preferences stored before allergies, goal, and budget existed lack
+    /// those keys; they load with their defaults. A key that is present with
+    /// the wrong type still throws.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        vegetarian = try container.decode(Bool.self, forKey: .vegetarian)
+        highProtein = try container.decode(Bool.self, forKey: .highProtein)
+        glutenFree = try container.decode(Bool.self, forKey: .glutenFree)
+        allergies = try container.decodeIfPresent([Allergen].self, forKey: .allergies) ?? []
+        goal = try container.decodeIfPresent(Goal.self, forKey: .goal)
+        budget = try container.decodeIfPresent(Decimal.self, forKey: .budget)
+    }
 }
 
 struct Totals: Hashable {

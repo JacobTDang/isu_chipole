@@ -23,6 +23,49 @@ struct MenuTests {
     func proteinShakeIsAnExtra() {
         #expect(Menu.ingredient("protein-shake").group == .extras)
     }
+
+    @Test
+    func cookieCarriesGlutenDairyAndEggs() {
+        #expect(Menu.ingredient("cookie").allergens == [.gluten, .dairy, .eggs])
+    }
+
+    @Test
+    func grilledChickenHasNoAllergens() {
+        #expect(Menu.ingredient("grilled-chicken").allergens.isEmpty)
+    }
+
+    @Test
+    func assignsAllergensPerContract() {
+        let expected: [String: [Allergen]] = [
+            "pasta": [.gluten],
+            "tofu": [.soy],
+            "eggs": [.eggs],
+            "salmon": [.fish],
+            "cheese": [.dairy],
+            "sour-cream": [.dairy],
+            "feta": [.dairy],
+            "chipotle-crema": [.dairy],
+            "buffalo": [.dairy],
+            "teriyaki": [.soy, .gluten],
+            "ranch": [.dairy, .eggs],
+            "pesto": [.dairy, .nuts],
+            "protein-shake": [.dairy],
+            "cookie": [.gluten, .dairy, .eggs],
+        ]
+        for ingredient in Menu.ingredients {
+            #expect(ingredient.allergens == (expected[ingredient.id] ?? []), "\(ingredient.id)")
+        }
+    }
+
+    @Test
+    func everyAllergenValueIsOneOfTheSix() {
+        #expect(Allergen.allCases.count == 6)
+        for ingredient in Menu.ingredients {
+            for allergen in ingredient.allergens {
+                #expect(Allergen.allCases.contains(allergen))
+            }
+        }
+    }
 }
 
 struct MenuImageTests {

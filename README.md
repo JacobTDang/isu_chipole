@@ -34,6 +34,19 @@ You need a Mac with [Xcode](https://apps.apple.com/app/xcode/id497799835) from t
 
 To run on your own iPhone: plug it in, choose it as the destination, and under the Andrews target's Signing settings pick your personal Apple ID as the team. The first run asks you to trust the developer on the phone under Settings, General, VPN and Device Management.
 
+## Mac desktop app
+
+The web app can also be built as a double-clickable Mac app. You need Node.js, [Rust](https://rustup.rs), and Xcode's command line tools (`xcode-select --install`). Then:
+
+```
+npm install
+npm run tauri build
+```
+
+The installer lands at `src-tauri/target/release/bundle/dmg/Andrew's_0.1.0_aarch64.dmg`. Open it and drag Andrew's into Applications.
+
+The app is not signed with an Apple developer certificate, so the first launch says it is from an unidentified developer. Open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to Andrew's. This only happens once.
+
 ## Change the menu
 
 - Web: meals, ingredients, and prices are in `src/data/menu.ts`. Photos are in `public/meals/`.

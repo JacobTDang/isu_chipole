@@ -2,7 +2,7 @@
 name = "andrews"
 version = "0.1.0"
 description = "Meal prep for Cyclones. Pick up on campus."
-authors = ["Andrew's"]
+authors = ["PrepPal"]
 license = ""
 repository = ""
 edition = "2021"

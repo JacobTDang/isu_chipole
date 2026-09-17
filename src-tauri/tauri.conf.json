@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Andrew's",
+  "productName": "PrepPal",
   "version": "0.1.0",
   "identifier": "com.andrews.desktop",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Andrew's",
+        "title": "PrepPal",
         "width": 470,
         "height": 940,
         "minWidth": 420,

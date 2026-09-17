@@ -31,13 +31,13 @@ const ticket = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Andrew's",
+  title: "PrepPal",
   description: "Meal prep for Cyclones. Pick up on campus.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Andrew's",
+    title: "PrepPal",
   },
   icons: {
     apple: "/icons/apple-touch-icon.png",

@@ -3,5 +3,5 @@ export function newBagItemId(): string {
 }
 
 export function newOrderId(): string {
-  return `AND-${Math.floor(Math.random() * 10_000).toString().padStart(4, "0")}`;
+  return `PP-${Math.floor(Math.random() * 10_000).toString().padStart(4, "0")}`;
 }

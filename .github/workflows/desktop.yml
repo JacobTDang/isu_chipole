@@ -45,8 +45,8 @@ jobs:
         run: |
           dmg="$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name '*.dmg' -print -quit)"
           test -n "$dmg" || { echo "no dmg produced"; exit 1; }
-          cp "$dmg" Andrews-mac.dmg
-          ls -la Andrews-mac.dmg
+          cp "$dmg" PrepPal-mac.dmg
+          ls -la PrepPal-mac.dmg
 
       - name: Publish to the latest release
         env:
@@ -56,8 +56,8 @@ jobs:
           Built automatically from the newest code on `main`.
 
           **Install**
-          1. Open `Andrews-mac.dmg` and drag Andrew's into Applications.
-          2. On first launch macOS may say the app is from an unidentified developer. Open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to Andrew's. This only happens once.
+          1. Open `PrepPal-mac.dmg` and drag PrepPal into Applications.
+          2. On first launch macOS may say the app is from an unidentified developer. Open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to PrepPal. This only happens once.
           3. Sign in with any email. The promo code `CYCLONE10` takes 10% off.
           NOTES
 
@@ -65,7 +65,7 @@ jobs:
           git push -f origin latest
 
           if ! gh release view latest >/dev/null 2>&1; then
-            gh release create latest --title "Andrew's (latest build)" --notes-file notes.md
+            gh release create latest --title "PrepPal (latest build)" --notes-file notes.md
           fi
-          gh release upload latest Andrews-mac.dmg --clobber
+          gh release upload latest PrepPal-mac.dmg --clobber
           gh release edit latest --latest --notes-file notes.md

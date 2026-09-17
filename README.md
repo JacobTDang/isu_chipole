@@ -1,13 +1,13 @@
-# Andrew's
+# PrepPal
 
 Meal prep for Iowa State students. Pick a preset meal or build your own Chipotle-style, choose a weekly plan, and pick up on campus.
 
 ## Download
 
-Mac users: get the newest build at https://github.com/JacobTDang/isu_chipole/releases/latest and download `Andrews-mac.dmg`. It runs on both Intel and Apple Silicon Macs.
+Mac users: get the newest build at https://github.com/JacobTDang/isu_chipole/releases/latest and download `PrepPal-mac.dmg`. It runs on both Intel and Apple Silicon Macs.
 
-1. Open the dmg and drag Andrew's into Applications.
-2. On first launch, open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to Andrew's. This only happens once.
+1. Open the dmg and drag PrepPal into Applications.
+2. On first launch, open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to PrepPal. This only happens once.
 3. Sign in with any email. The promo code `CYCLONE10` takes 10% off.
 
 Every push to `main` rebuilds this download automatically.
@@ -53,9 +53,9 @@ npm install
 npm run tauri build
 ```
 
-The installer lands at `src-tauri/target/release/bundle/dmg/Andrew's_0.1.0_aarch64.dmg`. Open it and drag Andrew's into Applications.
+The installer lands at `src-tauri/target/release/bundle/dmg/PrepPal_0.1.0_aarch64.dmg`. Open it and drag PrepPal into Applications.
 
-The app is not signed with an Apple developer certificate, so the first launch says it is from an unidentified developer. Open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to Andrew's. This only happens once.
+The app is not signed with an Apple developer certificate, so the first launch says it is from an unidentified developer. Open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to PrepPal. This only happens once.
 
 ## Change the menu
 

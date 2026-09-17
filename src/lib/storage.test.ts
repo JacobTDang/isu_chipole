@@ -31,7 +31,7 @@ describe("storage", () => {
     expect(readBagState()).toEqual({ items: [], plan: 5 });
   });
 
-  it("clears every Andrew's key", () => {
+  it("clears every PrepPal key", () => {
     for (const key of Object.values(KEYS)) window.localStorage.setItem(key, "anything");
     clearAll();
     for (const key of Object.values(KEYS)) expect(window.localStorage.getItem(key)).toBeNull();

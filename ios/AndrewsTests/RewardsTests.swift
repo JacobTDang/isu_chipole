@@ -39,7 +39,7 @@ struct RewardsTests {
 
     private func order(total: String) -> Order {
         Order(
-            id: "AND-1234",
+            id: "PP-1234",
             items: [],
             plan: .five,
             promo: nil,

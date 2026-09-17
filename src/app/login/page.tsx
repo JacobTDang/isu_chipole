@@ -25,7 +25,7 @@ export default function LoginPage() {
     <div className="flex min-h-full flex-col px-6 pb-8">
       <div className="flex flex-1 flex-col items-center justify-center pt-6 text-center">
         <Image src="/isu-logo.png" alt="Iowa State University" width={240} height={135} priority />
-        <h1 className="mt-7 font-display text-[34px] leading-tight font-extrabold tracking-[-0.02em] text-ink">Andrew&apos;s</h1>
+        <h1 className="mt-7 font-display text-[34px] leading-tight font-extrabold tracking-[-0.02em] text-ink">PrepPal</h1>
         <p className="mt-2 max-w-72 text-[15px] leading-6 text-ink-soft">Meal prep for Cyclones. Pick up on campus.</p>
       </div>
       <form onSubmit={submit} className="space-y-3">

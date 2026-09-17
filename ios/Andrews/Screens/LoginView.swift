@@ -20,7 +20,7 @@ struct LoginView: View {
                     .frame(width: 240)
                     .accessibilityLabel("Iowa State University")
 
-                Text("Andrew's")
+                Text("PrepPal")
                     .font(.display(34))
                     .foregroundStyle(Color.ink)
                     .padding(.top, 28)

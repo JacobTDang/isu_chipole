@@ -123,7 +123,7 @@ final class AppStore {
     func placeOrder(location: PickupLocation, day: PickupDay, time: String) -> Order {
         let totals = Pricing.orderTotals(bag, plan: plan, promo: promo)
         let order = Order(
-            id: String(format: "AND-%04d", Int.random(in: 0...9_999)),
+            id: String(format: "PP-%04d", Int.random(in: 0...9_999)),
             items: bag,
             plan: plan,
             promo: promo,

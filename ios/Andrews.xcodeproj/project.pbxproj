@@ -30,7 +30,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		100000000000000000000042 /* Exceptions for Andrews folder in Andrews target */ = {
+		100000000000000000000042 /* Exceptions for "Andrews" folder in "Andrews" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -43,30 +43,18 @@
 		100000000000000000000040 /* Andrews */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				100000000000000000000042 /* Exceptions for Andrews folder in Andrews target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
+				100000000000000000000042 /* Exceptions for "Andrews" folder in "Andrews" target */,
 			);
 			path = Andrews;
 			sourceTree = "<group>";
 		};
 		100000000000000000000041 /* AndrewsTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = AndrewsTests;
 			sourceTree = "<group>";
 		};
 		100000000000000000000043 /* AndrewsUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = AndrewsUITests;
 			sourceTree = "<group>";
 		};

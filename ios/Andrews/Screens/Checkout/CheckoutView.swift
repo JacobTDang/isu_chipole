@@ -179,7 +179,7 @@ struct CheckoutView: View {
     private func placeOrder() {
         guard !isPlacing else { return }
         isPlacing = true
-        placedOrder = store.placeOrder(location: location, day: day, time: time)
+        placedOrder = store.placeOrder(fulfillment: .pickup, address: nil, location: location, day: day, time: time)
     }
 
     private func rounded(_ value: Decimal) -> Decimal {

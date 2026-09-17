@@ -120,8 +120,25 @@ final class AppStore {
     }
 
     @discardableResult
-    func placeOrder(location: PickupLocation, day: PickupDay, time: String) -> Order {
-        let totals = Pricing.orderTotals(bag, plan: plan, promo: promo)
+    func placeOrder(
+        fulfillment: Fulfillment,
+        address: String?,
+        location: PickupLocation,
+        day: PickupDay,
+        time: String
+    ) -> Order {
+        let cleanAddress = address?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let deliveryFee: Decimal
+        switch fulfillment {
+        case .pickup:
+            deliveryFee = 0
+        case .delivery:
+            guard let cleanAddress, !cleanAddress.isEmpty else {
+                preconditionFailure("Delivery orders need an address")
+            }
+            deliveryFee = Pricing.deliveryFee
+        }
+        let totals = Pricing.orderTotals(bag, plan: plan, promo: promo, deliveryFee: deliveryFee)
         let order = Order(
             id: String(format: "PP-%04d", Int.random(in: 0...9_999)),
             items: bag,
@@ -130,6 +147,9 @@ final class AppStore {
             location: location,
             day: day,
             time: time,
+            fulfillment: fulfillment,
+            address: fulfillment == .delivery ? cleanAddress : nil,
+            deliveryFee: totals.delivery,
             subtotal: totals.subtotal,
             discount: totals.discount,
             tax: totals.tax,

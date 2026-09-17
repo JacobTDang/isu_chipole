@@ -122,19 +122,51 @@ enum PickupDay: String, Codable, CaseIterable, Hashable {
     case wednesday = "Wednesday"
 }
 
+enum Fulfillment: String, Codable, Hashable {
+    case pickup
+    case delivery
+}
+
 struct Order: Codable, Identifiable, Hashable {
     let id: String
     let items: [BagItem]
     let plan: PlanSize
     let promo: String?
+    /// For delivery this holds the default location and is not shown.
     let location: PickupLocation
     let day: PickupDay
     let time: String
+    let fulfillment: Fulfillment
+    let address: String?
+    let deliveryFee: Decimal
     let subtotal: Decimal
     let discount: Decimal
     let tax: Decimal
     let total: Decimal
     let placedAt: Date
+}
+
+extension Order {
+    /// Orders stored before delivery existed lack the fulfillment keys and
+    /// load as pickup with no fee.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        items = try container.decode([BagItem].self, forKey: .items)
+        plan = try container.decode(PlanSize.self, forKey: .plan)
+        promo = try container.decodeIfPresent(String.self, forKey: .promo)
+        location = try container.decode(PickupLocation.self, forKey: .location)
+        day = try container.decode(PickupDay.self, forKey: .day)
+        time = try container.decode(String.self, forKey: .time)
+        fulfillment = try container.decodeIfPresent(Fulfillment.self, forKey: .fulfillment) ?? .pickup
+        address = try container.decodeIfPresent(String.self, forKey: .address)
+        deliveryFee = try container.decodeIfPresent(Decimal.self, forKey: .deliveryFee) ?? 0
+        subtotal = try container.decode(Decimal.self, forKey: .subtotal)
+        discount = try container.decode(Decimal.self, forKey: .discount)
+        tax = try container.decode(Decimal.self, forKey: .tax)
+        total = try container.decode(Decimal.self, forKey: .total)
+        placedAt = try container.decode(Date.self, forKey: .placedAt)
+    }
 }
 
 struct User: Codable, Hashable {

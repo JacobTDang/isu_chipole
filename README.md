@@ -2,6 +2,16 @@
 
 Meal prep for Iowa State students. Pick a preset meal or build your own Chipotle-style, choose a weekly plan, and pick up on campus.
 
+## Download
+
+Mac users: get the newest build at https://github.com/JacobTDang/isu_chipole/releases/latest and download `Andrews-mac.dmg`. It runs on both Intel and Apple Silicon Macs.
+
+1. Open the dmg and drag Andrew's into Applications.
+2. On first launch, open System Settings, go to Privacy & Security, scroll down, and click Open Anyway next to Andrew's. This only happens once.
+3. Sign in with any email. The promo code `CYCLONE10` takes 10% off.
+
+Every push to `main` rebuilds this download automatically.
+
 This repo holds two versions of the same app:
 
 - **Web app** in the root folder. Runs in any browser and installs to an iPhone home screen.

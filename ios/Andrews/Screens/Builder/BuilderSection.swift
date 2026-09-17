@@ -11,6 +11,7 @@ struct BuilderSection: View {
     let options: [Ingredient]
     let selected: [String]
     let mode: BuilderSectionMode
+    let allergies: [Allergen]
     let onChange: ([String]) -> Void
 
     init(
@@ -19,6 +20,7 @@ struct BuilderSection: View {
         options: [Ingredient],
         selected: [String],
         mode: BuilderSectionMode,
+        allergies: [Allergen] = [],
         onChange: @escaping ([String]) -> Void
     ) {
         self.title = title
@@ -26,6 +28,7 @@ struct BuilderSection: View {
         self.options = options
         self.selected = selected
         self.mode = mode
+        self.allergies = allergies
         self.onChange = onChange
     }
 
@@ -45,11 +48,14 @@ struct BuilderSection: View {
 
             FlowLayout(spacing: 8) {
                 ForEach(options) { option in
+                    let caption = Allergies.caption(for: option, allergies: allergies)
                     PillButton(
                         label: option.name,
                         price: option.price,
                         veg: option.tags.contains(.veg),
-                        selected: selected.contains(option.id)
+                        selected: selected.contains(option.id),
+                        disabled: caption != nil,
+                        caption: caption
                     ) {
                         toggle(option.id)
                     }

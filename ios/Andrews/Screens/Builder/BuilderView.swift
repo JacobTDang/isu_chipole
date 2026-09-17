@@ -27,16 +27,18 @@ struct BuilderView: View {
             )
         case .preset(let presetId):
             let preset = Menu.preset(presetId)
+            let safe = Allergies.removingConflicts(from: preset.ingredientIds, allergies: store.prefs.allergies)
             BuilderForm(
                 mode: mode,
                 initial: Selection(
                     mealType: preset.mealType,
-                    ingredientIds: preset.ingredientIds,
+                    ingredientIds: safe.kept,
                     quantity: 1,
                     presetId: preset.id
                 ),
                 title: preset.name,
-                image: preset.image
+                image: preset.image,
+                banner: safe.banner
             )
         case .edit(let itemId):
             let item = bagItem(itemId)
@@ -76,12 +78,14 @@ private struct BuilderForm: View {
     let mode: BuilderMode
     let title: String
     let image: String
+    let banner: String?
     @State private var selection: Selection
 
-    init(mode: BuilderMode, initial: Selection, title: String, image: String) {
+    init(mode: BuilderMode, initial: Selection, title: String, image: String, banner: String? = nil) {
         self.mode = mode
         self.title = title
         self.image = image
+        self.banner = banner
         _selection = State(initialValue: initial)
     }
 
@@ -105,7 +109,11 @@ private struct BuilderForm: View {
         ScrollView {
             VStack(spacing: 0) {
                 hero
-                MacroLine(calories: macros.calories, protein: macros.protein)
+                MacroLine(calories: macros.calories, protein: macros.protein, goalStatus: goalStatus)
+
+                if let banner {
+                    removedBanner(banner)
+                }
 
                 ForEach(Array(sectionSpecs.enumerated()), id: \.offset) { index, spec in
                     if index > 0 {
@@ -116,7 +124,8 @@ private struct BuilderForm: View {
                         rule: spec.rule,
                         options: Menu.ingredients(in: spec.group),
                         selected: selectedIds(in: spec.group),
-                        mode: spec.mode
+                        mode: spec.mode,
+                        allergies: store.prefs.allergies
                     ) { ids in
                         change(group: spec.group, to: ids)
                     }
@@ -137,6 +146,21 @@ private struct BuilderForm: View {
 
     private var macros: (calories: Int, protein: Int) {
         Pricing.macros(selection)
+    }
+
+    private var goalStatus: (onTarget: Bool, message: String)? {
+        guard let goal = store.prefs.goal else { return nil }
+        return Pricing.goalStatus(goal, macros: macros)
+    }
+
+    private func removedBanner(_ text: String) -> some View {
+        Text(text)
+            .font(.body(15, weight: .semibold))
+            .foregroundStyle(Color.cardinal)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.cardinal.opacity(0.08))
     }
 
     private var hero: some View {
@@ -202,6 +226,13 @@ private struct BuilderForm: View {
 
     private var ticketBar: some View {
         TicketView(lines: [], prominentLine: ticketLine) {
+            if let budgetLine {
+                Text(budgetLine.text)
+                    .font(.ticket(13))
+                    .foregroundStyle(budgetLine.over ? Color.cardinal : Color.inkSoft)
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
             Button(isEditing ? "Save changes" : "Add to bag") {
                 submit()
             }
@@ -223,6 +254,17 @@ private struct BuilderForm: View {
             label: "\(count) meal\(count == 1 ? "" : "s")",
             amount: Pricing.money(Pricing.itemPrice(selection))
         )
+    }
+
+    /// "Budget $10.00 · $2.25 left", or "$1.50 over budget" once the meal
+    /// costs more than the budget. Guidance only; adding stays enabled.
+    private var budgetLine: (text: String, over: Bool)? {
+        guard requiredComplete, let budget = store.prefs.budget else { return nil }
+        let status = Pricing.budgetStatus(budget: budget, price: Pricing.itemPrice(selection))
+        if status.over {
+            return ("\(Pricing.money(-status.remaining)) over budget", true)
+        }
+        return ("Budget \(Pricing.money(budget)) · \(Pricing.money(status.remaining)) left", false)
     }
 
     private func selectedIds(in group: IngredientGroup) -> [String] {

@@ -11,6 +11,7 @@ import { ToastProvider } from "../components/Toast";
 import { AuthProvider } from "../state/AuthProvider";
 import { BagProvider } from "../state/BagProvider";
 import { OrdersProvider } from "../state/OrdersProvider";
+import { PreferencesProvider } from "../state/PreferencesProvider";
 
 const display = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -64,12 +65,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AuthProvider>
           <BagProvider>
             <OrdersProvider>
-              <PhoneFrame>
-                <ToastProvider>
-                  {children}
-                  <TabBar />
-                </ToastProvider>
-              </PhoneFrame>
+              <PreferencesProvider>
+                <PhoneFrame>
+                  <ToastProvider>
+                    {children}
+                    <TabBar />
+                  </ToastProvider>
+                </PhoneFrame>
+              </PreferencesProvider>
             </OrdersProvider>
           </BagProvider>
         </AuthProvider>

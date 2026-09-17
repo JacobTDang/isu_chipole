@@ -5,6 +5,9 @@ import { GroupedList, GroupedRow } from "../../components/GroupedList";
 import { LargeTitle } from "../../components/LargeTitle";
 import { RequireAuth } from "../../components/RequireAuth";
 import { useToast } from "../../components/Toast";
+import { Allergies } from "../../components/account/Allergies";
+import { Budget } from "../../components/account/Budget";
+import { HealthGoal } from "../../components/account/HealthGoal";
 import { OrderHistory } from "../../components/account/OrderHistory";
 import { Preferences } from "../../components/account/Preferences";
 import { SavedMeals } from "../../components/account/SavedMeals";
@@ -97,6 +100,18 @@ export default function AccountPage() {
 
         <GroupedList header="Dietary preferences">
           <Preferences />
+        </GroupedList>
+
+        <GroupedList header="Health goal">
+          <HealthGoal />
+        </GroupedList>
+
+        <GroupedList header="Allergies">
+          <Allergies />
+        </GroupedList>
+
+        <GroupedList header="Budget per meal">
+          <Budget />
         </GroupedList>
 
         <GroupedList header="Demo">

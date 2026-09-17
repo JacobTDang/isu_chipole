@@ -3,6 +3,12 @@ import { PRESETS, preset } from "../../../data/menu";
 import { Builder } from "../../../components/builder/Builder";
 import { RequireAuth } from "../../../components/RequireAuth";
 
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return PRESETS.map((meal) => ({ presetId: meal.id }));
+}
+
 export default async function PresetPage({ params }: { params: Promise<{ presetId: string }> }) {
   const { presetId } = await params;
   if (!PRESETS.some((meal) => meal.id === presetId)) notFound();

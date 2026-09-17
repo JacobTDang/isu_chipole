@@ -38,7 +38,7 @@ export function OrderHistory({
         return (
           <div key={order.id} className="flex items-center gap-2 px-4 py-3">
             <Link
-              href={`/order/${order.id}`}
+              href={`/confirmation?id=${order.id}`}
               className="flex min-h-11 min-w-0 flex-1 items-center"
             >
               <span className="min-w-0">

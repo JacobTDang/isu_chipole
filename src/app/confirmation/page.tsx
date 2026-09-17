@@ -1,15 +1,15 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
-import { use } from "react";
-import { Button } from "../../../components/Button";
-import { RequireAuth } from "../../../components/RequireAuth";
-import { Ticket } from "../../../components/Ticket";
-import { mealType, preset } from "../../../data/menu";
-import type { BagItem } from "../../../data/types";
-import { itemPrice } from "../../../lib/pricing";
-import { useOrders } from "../../../state/OrdersProvider";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { Button } from "../../components/Button";
+import { RequireAuth } from "../../components/RequireAuth";
+import { Ticket } from "../../components/Ticket";
+import { mealType, preset } from "../../data/menu";
+import type { BagItem } from "../../data/types";
+import { itemPrice } from "../../lib/pricing";
+import { useOrders } from "../../state/OrdersProvider";
 import styles from "./confirmation.module.css";
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -23,12 +23,16 @@ function itemName(item: BagItem): string {
   return `Custom ${mealType(item.mealType).name}`;
 }
 
-export default function ConfirmationPage({
-  params,
-}: {
-  params: Promise<{ orderId: string }>;
-}) {
-  const { orderId } = use(params);
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={null}>
+      <Confirmation />
+    </Suspense>
+  );
+}
+
+function Confirmation() {
+  const orderId = useSearchParams().get("id");
   const router = useRouter();
   const { orders, ready } = useOrders();
   const order = orders.find((candidate) => candidate.id === orderId);

@@ -1,11 +1,20 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import type { Selection } from "../../../data/types";
 import { useBag } from "../../../state/BagProvider";
 import { Builder } from "../../../components/builder/Builder";
 import { InlineNav } from "../../../components/InlineNav";
 
-export function MenuPageClient({ initial, title, image, editingId }: { initial: Selection; title: string; image: string; editingId?: string }) {
+type MenuPageProps = { initial: Selection; title: string; image: string };
+
+export function MenuPageClient(props: MenuPageProps) {
+  return <Suspense fallback={null}><MenuPageContent {...props} /></Suspense>;
+}
+
+function MenuPageContent({ initial, title, image }: MenuPageProps) {
+  const editingId = useSearchParams().get("edit") ?? undefined;
   const { items, ready } = useBag();
   if (!ready) return null;
   if (!editingId) return <Builder initial={initial} title={title} image={image} />;

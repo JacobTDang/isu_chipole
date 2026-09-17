@@ -73,7 +73,7 @@ export default function CheckoutPage() {
       ...totals,
     });
     clear();
-    router.replace(`/order/${order.id}`);
+    router.replace(`/confirmation?id=${order.id}`);
   }
 
   const lines = [

@@ -29,7 +29,7 @@ export function TabBar() {
     }
     previous.current = count;
   }, [count]);
-  if (pathname === "/login" || /^\/order\/[^/]+$/.test(pathname)) return null;
+  if (pathname === "/login" || pathname === "/confirmation") return null;
   const isActive = (href: string) => href === "/" ? pathname === "/" : href === "/order" ? pathname === "/order" || pathname.startsWith("/menu/") || pathname.startsWith("/meal/") : pathname.startsWith(href);
   return (
     <nav aria-label="Primary" className="absolute right-0 bottom-0 left-0 z-30 flex h-[calc(49px+max(34px,env(safe-area-inset-bottom)))] border-t border-line bg-card pb-[max(34px,env(safe-area-inset-bottom))]">

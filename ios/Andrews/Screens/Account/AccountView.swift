@@ -22,6 +22,22 @@ struct AccountView: View {
                 PreferencesSection()
             }
 
+            Section("Health goal") {
+                GoalSection()
+            }
+
+            Section {
+                AllergySection()
+            } header: {
+                Text("Allergies")
+            } footer: {
+                Text("We'll grey out anything that contains these.")
+            }
+
+            Section("Budget per meal") {
+                BudgetSection()
+            }
+
             Section("Demo") {
                 demoRow("Reset demo data") {
                     store.resetDemoData()

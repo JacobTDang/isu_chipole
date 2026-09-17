@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Andrew's
 
-## Getting Started
+Meal prep for Iowa State students. Pick a preset meal or build your own Chipotle-style, choose a weekly plan, and pick up on campus.
 
-First, run the development server:
+This repo holds two versions of the same app:
 
-```bash
+- **Web app** in the root folder. Runs in any browser and installs to an iPhone home screen.
+- **Native iOS app** in `ios/`. SwiftUI, runs in the iOS Simulator or on an iPhone.
+
+Both are prototypes. There is no backend; orders and sign-in live on the device.
+
+## Easiest way to try it
+
+If there is a live link, open it on your phone. In Safari tap Share, then "Add to Home Screen". It opens full screen with its own icon. Nothing to install.
+
+## Run the web app on your computer
+
+You need [Node.js](https://nodejs.org) (the LTS version). Then:
+
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Sign in with any email. The promo code `CYCLONE10` takes 10% off.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run the iOS app
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+You need a Mac with [Xcode](https://apps.apple.com/app/xcode/id497799835) from the Mac App Store (a large download).
 
-## Learn More
+1. Open `ios/Andrews.xcodeproj` in Xcode.
+2. At the top, pick a simulator such as iPhone 17 Pro.
+3. Press the Run button.
 
-To learn more about Next.js, take a look at the following resources:
+To run on your own iPhone: plug it in, choose it as the destination, and under the Andrews target's Signing settings pick your personal Apple ID as the team. The first run asks you to trust the developer on the phone under Settings, General, VPN and Device Management.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Change the menu
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Web: meals, ingredients, and prices are in `src/data/menu.ts`. Photos are in `public/meals/`.
+- iOS: the same data is in `ios/Andrews/Model/Menu.swift`. Photos are in `ios/Andrews/Assets.xcassets`.
 
-## Deploy on Vercel
+## Tests
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+npm test
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+iOS unit and UI tests run from Xcode with Product, Test, or:
+
+```
+xcodebuild -project ios/Andrews.xcodeproj -scheme Andrews -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+```

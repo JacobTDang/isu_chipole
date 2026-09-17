@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { BagItem } from "../../data/types";
 import { ingredient, mealType, preset } from "../../data/menu";
+import { selectionImage } from "../../lib/images";
 import { itemPrice } from "../../lib/pricing";
 import { useBag } from "../../state/BagProvider";
 import { MealImage } from "../MealImage";
@@ -13,7 +14,7 @@ export function BagRow({ item }: { item: BagItem }) {
   const type = mealType(item.mealType);
   const presetMeal = item.presetId ? preset(item.presetId) : undefined;
   const title = item.name || presetMeal?.name || `Custom ${type.name}`;
-  const image = presetMeal?.image || type.image;
+  const image = selectionImage(item);
   const summary = item.ingredientIds.map((id) => ingredient(id).name).join(", ");
   const unitPrice = itemPrice({ ...item, quantity: 1 });
 

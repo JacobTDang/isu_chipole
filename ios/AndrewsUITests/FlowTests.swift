@@ -37,9 +37,24 @@ final class FlowTests: XCTestCase {
             snap("02-home")
         }
 
+        step("settings") {
+            try selectTab("Account")
+            try require(app.staticTexts["Account"], "Account title")
+            try setToggle("No budget", to: false)
+            try require(app.staticTexts["$10.00 per meal"], "$10.00 per meal after enabling the budget")
+            for _ in 0..<4 {
+                try incrementBudget()
+            }
+            try require(app.staticTexts["$12.00 per meal"], "$12.00 per meal after four steps")
+            try setToggle("Dairy", to: true)
+            settle()
+            snap("09-account-settings")
+        }
+
         step("order") {
             try selectTab("Order")
             try require(app.staticTexts["Order"], "Order title")
+            try require(app.buttons["In budget"], "In budget chip")
             settle()
             snap("03-order")
         }
@@ -52,6 +67,14 @@ final class FlowTests: XCTestCase {
             try tapPill("Grilled chicken")
             try tapPill("Guac")
             try require(staticText(containing: "$10.25"), "ticket price $10.25")
+            let cheese = try require(app.buttons.matching(labelBeginsWith: "Cheese").firstMatch, "Cheese pill")
+            guard cheese.label.contains("Contains dairy") else {
+                throw MissingElement(description: "Contains dairy caption on the Cheese pill, found \(cheese.label)")
+            }
+            guard !cheese.isEnabled else {
+                throw MissingElement(description: "disabled Cheese pill")
+            }
+            try require(staticText(containing: "left"), "budget line with an amount left")
             settle()
             snap("04-build")
             try require(app.buttons["Add to bag"], "Add to bag button").tap()
@@ -75,20 +98,38 @@ final class FlowTests: XCTestCase {
         step("checkout") {
             try require(app.buttons["Check out"], "Check out button").tap()
             try require(app.staticTexts["Checkout"], "Checkout title")
+            try require(app.buttons["Delivery"], "Delivery segment").tap()
+            let placeOrder = try require(app.buttons["Place order"], "Place order button")
+            guard !placeOrder.isEnabled else {
+                throw MissingElement(description: "disabled Place order button before an address is entered")
+            }
+            let address = try require(app.textFields["Friley Hall, room 2310"], "Deliver to field")
+            address.tap()
+            address.typeText("Friley Hall, room 2310\n")
+            try require(app.staticTexts["Delivery day"], "Delivery day label")
             let promo = try require(app.textFields["Enter code"], "promo field")
             scrollIntoView(promo, bottomInset: 340)
             promo.tap()
             promo.typeText("CYCLONE10")
             try require(app.buttons["Apply"], "Apply button").tap()
             try require(staticText(containing: "Promo"), "Promo line")
-            try require(staticText(containing: "$65.26"), "total $65.26")
+            try require(app.staticTexts["Delivery"], "Delivery ticket line")
+            try require(staticText(containing: "$68.25"), "total $68.25")
             settle()
             snap("06-checkout")
         }
 
         step("confirmation") {
-            try require(app.buttons["Place order"], "Place order button").tap()
+            let placeOrder = try require(app.buttons["Place order"], "Place order button")
+            guard placeOrder.isEnabled else {
+                throw MissingElement(description: "enabled Place order button after entering an address")
+            }
+            placeOrder.tap()
             try require(app.staticTexts["See you Sunday."], "See you Sunday.")
+            try require(app.staticTexts["Deliver to"], "Deliver to ticket line")
+            try require(app.staticTexts["Friley Hall, room 2310"], "delivery address on the ticket")
+            try require(app.staticTexts["Arrives at 4:30 PM"], "Arrives at 4:30 PM")
+            try require(app.staticTexts["$68.25"], "total $68.25")
             settle()
             snap("07-confirmation")
             try require(app.buttons["Back to home"], "Back to home button").tap()
@@ -97,7 +138,8 @@ final class FlowTests: XCTestCase {
         step("account") {
             try selectTab("Account")
             try require(app.staticTexts["Account"], "Account title")
-            try require(app.staticTexts["65 pts"], "65 pts")
+            scrollListToTop()
+            try require(app.staticTexts["68 pts"], "68 pts")
             settle()
             snap("08-account")
         }
@@ -155,6 +197,72 @@ final class FlowTests: XCTestCase {
             return inTabBar
         }
         return try require(app.buttons[name], "\(name) tab")
+    }
+
+    /// Account rows live in a lazy list, so a row only exists once scrolled
+    /// to. The switch sits at the trailing edge of its row; tapping there
+    /// flips it, where a tap on the label would not.
+    private func setToggle(_ label: String, to enabled: Bool) throws {
+        let toggle = app.switches[label]
+        try scrollListUntilHittable(toggle, "\(label) toggle")
+        let target = enabled ? "1" : "0"
+        guard (toggle.value as? String) != target else { return }
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        settle(0.5)
+        guard (toggle.value as? String) == target else {
+            throw MissingElement(description: "\(label) toggle switched \(enabled ? "on" : "off")")
+        }
+    }
+
+    /// SwiftUI derives the stepper buttons' identifiers from the stepper's
+    /// own, so the plus button is "budget-stepper-Increment".
+    private func incrementBudget() throws {
+        let stepper = app.steppers["budget-stepper"]
+        try scrollListUntilHittable(stepper, "budget stepper")
+        try require(stepper.buttons["budget-stepper-Increment"], "budget stepper increment button").tap()
+        settle(0.3)
+    }
+
+    /// The Account tab keeps its scroll position between visits, so the
+    /// rewards card at the top may be offscreen after changing settings.
+    private func scrollListToTop() {
+        var attempts = 0
+        while !app.staticTexts["Rewards"].isHittable && attempts < 8 {
+            app.swipeDown(velocity: .fast)
+            settle(0.5)
+            attempts += 1
+        }
+        settle(0.6)
+    }
+
+    /// A row under the translucent navigation bar or tab bar still reports
+    /// as hittable, so after the row exists, nudge it into the clear band.
+    private func scrollListUntilHittable(_ element: XCUIElement, _ description: String) throws {
+        var attempts = 0
+        while !element.exists && attempts < 8 {
+            app.swipeUp(velocity: .slow)
+            settle(0.6)
+            attempts += 1
+        }
+        let topInset: CGFloat = 130
+        let bottomInset: CGFloat = 140
+        func isInBand() -> Bool {
+            let frame = element.frame
+            return frame.minY >= topInset && frame.maxY <= app.frame.height - bottomInset
+        }
+        attempts = 0
+        while element.exists && !isInBand() && attempts < 8 {
+            let delta: CGFloat = element.frame.minY < topInset ? 0.2 : -0.2
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.5 + delta))
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
+            settle(0.6)
+            attempts += 1
+        }
+        settle(0.6)
+        guard element.exists && element.isHittable && isInBand() else {
+            throw MissingElement(description: "hittable \(description)")
+        }
     }
 
     private func tapPill(_ name: String) throws {

@@ -88,7 +88,22 @@ struct PricingTests {
     @Test
     func sumsMacros() {
         let result = Pricing.macros(bowl)
-        #expect(result.calories == 440)
-        #expect(result.protein == 47)
+        #expect(result.calories == 395)
+        #expect(result.protein == 39)
+    }
+
+    @Test
+    func sumsCycloneBowlPresetMacros() {
+        let cyclone = Menu.preset("cyclone-bowl")
+        let selection = Selection(
+            mealType: cyclone.mealType,
+            ingredientIds: cyclone.ingredientIds,
+            quantity: 1,
+            name: nil,
+            presetId: cyclone.id
+        )
+        let result = Pricing.macros(selection)
+        #expect(result.calories == 805)
+        #expect(result.protein == 59)
     }
 }

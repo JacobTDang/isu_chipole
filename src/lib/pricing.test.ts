@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { preset } from "../data/menu";
 import type { BagItem, Selection } from "../data/types";
 import { bagSubtotal, itemPrice, macros, mealCount, orderTotals, planDiscountRate, promoRate } from "./pricing";
 
@@ -31,5 +32,9 @@ describe("pricing", () => {
     const values = Object.values(orderTotals([{ ...bowl, id: "three", quantity: 3 }], 5));
     for (const value of values) expect(String(value).split(".")[1]?.length ?? 0).toBeLessThanOrEqual(2);
   });
-  it("sums macros", () => expect(macros(bowl)).toEqual({ calories: 440, protein: 47 }));
+  it("sums macros", () => expect(macros(bowl)).toEqual({ calories: 395, protein: 39 }));
+  it("sums the Cyclone Bowl preset macros", () => {
+    const { mealType: type, ingredientIds } = preset("cyclone-bowl");
+    expect(macros({ mealType: type, ingredientIds, quantity: 1 })).toEqual({ calories: 805, protein: 59 });
+  });
 });

@@ -1,14 +1,16 @@
 "use client";
 
-import type { Ingredient } from "../../data/types";
+import type { Allergen, Ingredient } from "../../data/types";
+import { containsCaption, matchingAllergens } from "../../lib/allergens";
 import { Pill } from "../Pill";
 
-export function BuilderSection({ title, rule, options, selected, mode, onChange }: {
+export function BuilderSection({ title, rule, options, selected, mode, allergies, onChange }: {
   title: string;
   rule: string;
   options: Ingredient[];
   selected: string[];
   mode: "one" | "many";
+  allergies: Allergen[];
   onChange(ids: string[]): void;
 }) {
   const toggle = (id: string) => {
@@ -26,16 +28,21 @@ export function BuilderSection({ title, rule, options, selected, mode, onChange 
         <p className="shrink-0 text-[13px] text-ink-soft">{rule}</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
-          <Pill
-            key={option.id}
-            selected={selected.includes(option.id)}
-            onToggle={() => toggle(option.id)}
-            label={option.name}
-            price={option.price}
-            veg={option.tags.includes("veg")}
-          />
-        ))}
+        {options.map((option) => {
+          const conflicts = matchingAllergens(option, allergies);
+          return (
+            <Pill
+              key={option.id}
+              selected={selected.includes(option.id)}
+              onToggle={() => toggle(option.id)}
+              label={option.name}
+              price={option.price}
+              veg={option.tags.includes("veg")}
+              disabled={conflicts.length > 0}
+              caption={conflicts.length > 0 ? containsCaption(conflicts) : undefined}
+            />
+          );
+        })}
       </div>
     </section>
   );

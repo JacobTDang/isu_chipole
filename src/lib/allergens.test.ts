@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ingredient } from "../data/menu";
-import { allergenLabel, containsCaption, matchingAllergens, removedCaption } from "./allergens";
+import { ingredient, preset } from "../data/menu";
+import { allergenLabel, containsCaption, matchingAllergens, removeConflicts, removedCaption } from "./allergens";
 
 describe("allergens", () => {
   it("labels each allergen in sentence case", () => {
@@ -23,5 +23,17 @@ describe("allergens", () => {
     expect(removedCaption([ingredient("cheese"), ingredient("ranch")], ["dairy"])).toBe("We removed cheese and ranch. They contain dairy.");
     expect(removedCaption([ingredient("cheese")], ["dairy"])).toBe("We removed cheese. It contains dairy.");
     expect(removedCaption([ingredient("pasta"), ingredient("cheese"), ingredient("cookie")], ["dairy", "gluten"])).toBe("We removed pasta, cheese, and cookie. They contain dairy, gluten.");
+  });
+
+  it("removes conflicting ingredients from a preset and names them", () => {
+    const { kept, removed } = removeConflicts(preset("cyclone-bowl").ingredientIds, ["dairy"]);
+    expect(kept).toEqual(["cilantro-lime-rice", "grilled-chicken", "black-beans", "corn", "corn-salsa"]);
+    expect(removed.map((item) => item.id)).toEqual(["cheese", "chipotle-crema"]);
+    expect(removedCaption(removed, ["dairy"])).toBe("We removed cheese and chipotle crema. They contain dairy.");
+  });
+
+  it("keeps everything when no allergies are set", () => {
+    const ids = preset("cyclone-bowl").ingredientIds;
+    expect(removeConflicts(ids, [])).toEqual({ kept: ids, removed: [] });
   });
 });

@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 
-export type TicketLine = { label: ReactNode; amount: ReactNode; muted?: boolean };
+export type TicketLine = { label: ReactNode; amount?: ReactNode; muted?: boolean };
 
 function Line({ label, amount, muted }: TicketLine) {
+  if (amount === undefined) return <div className={muted ? "text-ink-soft" : "text-ink"}>{label}</div>;
   return (
     <div className={`flex items-end gap-2 ${muted ? "text-ink-soft" : "text-ink"}`}>
       <span className="shrink-0">{label}</span>

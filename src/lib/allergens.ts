@@ -1,4 +1,4 @@
-import { ALLERGENS } from "../data/menu";
+import { ALLERGENS, ingredient } from "../data/menu";
 import type { Allergen, Ingredient } from "../data/types";
 
 const LABELS: Record<Allergen, string> = { dairy: "Dairy", gluten: "Gluten", nuts: "Nuts", soy: "Soy", eggs: "Eggs", fish: "Fish" };
@@ -26,4 +26,10 @@ export function removedCaption(removed: Ingredient[], allergies: Allergen[]): st
   const allergens = ALLERGENS.filter((allergen) => removed.some((item) => matchingAllergens(item, allergies).includes(allergen)));
   const verb = removed.length === 1 ? "It contains" : "They contain";
   return `We removed ${listNames(names)}. ${verb} ${allergens.join(", ")}.`;
+}
+
+export function removeConflicts(ingredientIds: string[], allergies: Allergen[]): { kept: string[]; removed: Ingredient[] } {
+  const removed = ingredientIds.map(ingredient).filter((item) => matchingAllergens(item, allergies).length > 0);
+  const removedIds = new Set(removed.map((item) => item.id));
+  return { kept: ingredientIds.filter((id) => !removedIds.has(id)), removed };
 }

@@ -3,14 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ingredientsInGroup } from "../../data/menu";
-import type { IngredientGroup, Selection } from "../../data/types";
+import type { Ingredient, IngredientGroup, Selection } from "../../data/types";
+import { removeConflicts, removedCaption } from "../../lib/allergens";
+import { budgetStatus, goalStatus } from "../../lib/goals";
+import type { Preferences } from "../../lib/prefs";
 import { itemPrice, macros } from "../../lib/pricing";
 import { useBag } from "../../state/BagProvider";
 import { useOrders } from "../../state/OrdersProvider";
+import { usePreferences } from "../../state/PreferencesProvider";
 import { Button } from "../Button";
 import { InlineNav } from "../InlineNav";
 import { MealImage } from "../MealImage";
-import { Ticket } from "../Ticket";
+import { Ticket, type TicketLine } from "../Ticket";
 import { useToast } from "../Toast";
 import { BuilderSection } from "./BuilderSection";
 import { MacroLine } from "./MacroLine";
@@ -49,16 +53,37 @@ function AnimatedPrice({ value }: { value: number }) {
   return <span className="font-display text-[24px] font-extrabold tracking-[-0.02em] text-ink tabular-nums">${displayed.toFixed(2)}</span>;
 }
 
-export function Builder({ initial, title, image, editingId }: { initial: Selection; title: string; image: string; editingId?: string }) {
+type BuilderProps = { initial: Selection; title: string; image: string; editingId?: string };
+
+export function Builder(props: BuilderProps) {
+  const { preferences, ready } = usePreferences();
+  if (!ready) return null;
+  const { kept, removed } = removeConflicts(props.initial.ingredientIds, preferences.allergies);
+  return <BuilderContent {...props} initial={{ ...props.initial, ingredientIds: kept }} removed={removed} preferences={preferences} />;
+}
+
+function BudgetLine({ budget, price }: { budget: number; price: number }) {
+  const { over, remaining } = budgetStatus(budget, price);
+  if (over) return <span className="text-cardinal">${(-remaining).toFixed(2)} over budget</span>;
+  return <span className="text-ink-soft">Budget ${budget.toFixed(2)} · ${remaining.toFixed(2)} left</span>;
+}
+
+function BuilderContent({ initial, title, image, editingId, removed, preferences }: BuilderProps & { removed: Ingredient[]; preferences: Preferences }) {
   const [selection, setSelection] = useState(initial);
   const { add, update } = useBag();
   const { save } = useOrders();
   const { show } = useToast();
   const router = useRouter();
+  const { allergies, goal, budget } = preferences;
   const selectedGroups = (group: IngredientGroup) => selection.ingredientIds.filter((id) => ingredientsInGroup(group).some((option) => option.id === id));
   const requiredComplete = selectedGroups("base").length === 1 && selectedGroups("protein").length === 1;
   const nutrition = macros(selection);
   const total = itemPrice(selection);
+  const unitPrice = itemPrice({ ...selection, quantity: 1 });
+  const ticketLines: TicketLine[] = [requiredComplete
+    ? { label: `${selection.quantity} meal${selection.quantity === 1 ? "" : "s"}`, amount: <AnimatedPrice value={total} /> }
+    : { label: "Choose a base and a protein", amount: "" }];
+  if (budget !== null) ticketLines.push({ label: <BudgetLine budget={budget} price={unitPrice} /> });
 
   const changeGroup = (group: IngredientGroup, ids: string[]) => {
     const groupIds = new Set(ingredientsInGroup(group).map((option) => option.id));
@@ -86,9 +111,10 @@ export function Builder({ initial, title, image, editingId }: { initial: Selecti
         <MealImage src={image} alt={title} fallbackLetter={title} />
         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-ink/45 to-transparent" />
       </div>
-      <MacroLine calories={nutrition.calories} protein={nutrition.protein} />
+      <MacroLine calories={nutrition.calories} protein={nutrition.protein} status={goal ? goalStatus(goal, nutrition) : undefined} />
       <div className="bg-cream">
-        {sections.map((section) => <BuilderSection key={section.group} {...section} options={ingredientsInGroup(section.group)} selected={selectedGroups(section.group)} onChange={(ids) => changeGroup(section.group, ids)} />)}
+        {removed.length > 0 && <p role="status" className="mx-4 mt-4 rounded-xl border border-cardinal/30 bg-cardinal/10 px-4 py-3 text-[15px] font-semibold text-cardinal">{removedCaption(removed, allergies)}</p>}
+        {sections.map((section) => <BuilderSection key={section.group} {...section} options={ingredientsInGroup(section.group)} selected={selectedGroups(section.group)} allergies={allergies} onChange={(ids) => changeGroup(section.group, ids)} />)}
         <section className="border-t border-line px-4 py-6">
           <label htmlFor="meal-name" className="font-display text-[22px] font-extrabold tracking-[-0.02em] text-ink">Name this meal</label>
           <p className="mt-1 text-[13px] text-ink-soft">Optional — save a favorite for next time.</p>
@@ -97,7 +123,7 @@ export function Builder({ initial, title, image, editingId }: { initial: Selecti
         </section>
       </div>
       <div className="sticky bottom-0 z-20 border-t border-line shadow-[0_-10px_30px_var(--color-cream)]">
-        <Ticket lines={requiredComplete ? [{ label: `${selection.quantity} meal${selection.quantity === 1 ? "" : "s"}`, amount: <AnimatedPrice value={total} /> }] : [{ label: "Choose a base and a protein", amount: "" }]}>
+        <Ticket lines={ticketLines}>
           <Button full disabled={!requiredComplete} onClick={submit}>{editingId ? "Save changes" : "Add to bag"}</Button>
         </Ticket>
       </div>

@@ -2,23 +2,22 @@
 
 import { useEffect, useState } from "react";
 import {
+  EMPTY_PREFERENCES,
   readPreferences,
   writePreferences,
   type Preferences as PreferencesState,
-} from "./prefs";
+} from "../../lib/prefs";
 
-const options: Array<{ key: keyof PreferencesState; label: string }> = [
+type DietKey = "vegetarian" | "highProtein" | "glutenFree";
+
+const options: Array<{ key: DietKey; label: string }> = [
   { key: "vegetarian", label: "Vegetarian" },
   { key: "highProtein", label: "High protein" },
   { key: "glutenFree", label: "Gluten free" },
 ];
 
 export function Preferences() {
-  const [preferences, setPreferences] = useState<PreferencesState>({
-    vegetarian: false,
-    highProtein: false,
-    glutenFree: false,
-  });
+  const [preferences, setPreferences] = useState<PreferencesState>(EMPTY_PREFERENCES);
 
   useEffect(() => {
     let active = true;
@@ -30,7 +29,7 @@ export function Preferences() {
     };
   }, []);
 
-  function toggle(key: keyof PreferencesState) {
+  function toggle(key: DietKey) {
     setPreferences((current) => {
       const next = { ...current, [key]: !current[key] };
       writePreferences(next);

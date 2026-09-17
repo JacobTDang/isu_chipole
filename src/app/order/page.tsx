@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { readPreferences } from "../../components/account/prefs";
+import { readPreferences } from "../../lib/prefs";
 import { LargeTitle } from "../../components/LargeTitle";
 import { FilterChips, type OrderFilter } from "../../components/order/FilterChips";
 import { PresetList } from "../../components/order/PresetList";

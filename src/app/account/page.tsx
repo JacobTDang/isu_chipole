@@ -8,7 +8,7 @@ import { useToast } from "../../components/Toast";
 import { OrderHistory } from "../../components/account/OrderHistory";
 import { Preferences } from "../../components/account/Preferences";
 import { SavedMeals } from "../../components/account/SavedMeals";
-import { clearPreferences } from "../../components/account/prefs";
+import { clearPreferences } from "../../lib/prefs";
 import type { Order, Selection } from "../../data/types";
 import { newBagItemId } from "../../lib/ids";
 import { points, tier } from "../../lib/rewards";

@@ -1,5 +1,6 @@
 export type IngredientGroup = "base" | "protein" | "veggies" | "toppings" | "sauce" | "extras";
 export type IngredientTag = "veg" | "gf" | "spicy";
+export type Allergen = "dairy" | "gluten" | "nuts" | "soy" | "eggs" | "fish";
 
 export type Ingredient = {
   id: string;
@@ -9,6 +10,7 @@ export type Ingredient = {
   calories: number;
   protein: number;
   tags: IngredientTag[];
+  allergens: Allergen[];
 };
 
 export type MealTypeId = "bowl" | "wrap" | "pasta" | "salad" | "breakfast";

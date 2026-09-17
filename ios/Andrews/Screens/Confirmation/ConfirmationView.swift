@@ -73,16 +73,18 @@ struct ConfirmationView: View {
                 .opacity(revealed ? 1 : 0)
                 .offset(y: revealed ? 0 : 16)
 
-                Text("Ready at \(order.time)")
+                Text(order.fulfillment == .delivery ? "Arrives at \(order.time)" : "Ready at \(order.time)")
                     .font(.body(17, weight: .semibold))
                     .foregroundStyle(Color.ink)
                     .padding(.top, 20)
 
-                Text(order.location.note)
-                    .font(.body(15))
-                    .foregroundStyle(Color.inkSoft)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 4)
+                if order.fulfillment == .pickup {
+                    Text(order.location.note)
+                        .font(.body(15))
+                        .foregroundStyle(Color.inkSoft)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
@@ -101,16 +103,23 @@ struct ConfirmationView: View {
     }
 
     private func ticketLines(_ order: Order) -> [TicketLine] {
-        var lines = [
-            TicketLine(label: "Pickup", amount: order.location.name),
-            TicketLine(label: "Day", amount: order.day.rawValue),
-            TicketLine(label: "Time", amount: order.time),
-        ]
+        var lines: [TicketLine] = []
+        switch order.fulfillment {
+        case .pickup:
+            lines.append(TicketLine(label: "Pickup", amount: order.location.name))
+        case .delivery:
+            lines.append(TicketLine(label: "Deliver to", amount: order.address ?? ""))
+        }
+        lines.append(TicketLine(label: "Day", amount: order.day.rawValue))
+        lines.append(TicketLine(label: "Time", amount: order.time))
         for item in order.items {
             lines.append(TicketLine(
                 label: "\(item.selection.quantity)× \(itemName(item.selection))",
                 amount: Pricing.money(Pricing.itemPrice(item.selection))
             ))
+        }
+        if order.fulfillment == .delivery {
+            lines.append(TicketLine(label: "Delivery", amount: Pricing.money(order.deliveryFee)))
         }
         return lines
     }

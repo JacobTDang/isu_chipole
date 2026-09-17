@@ -1,8 +1,14 @@
 import SwiftUI
 
 struct TimeSheet: View {
+    let title: String
     @Binding var selection: String
     @Environment(\.dismiss) private var dismiss
+
+    init(title: String = "Pickup time", selection: Binding<String>) {
+        self.title = title
+        _selection = selection
+    }
 
     var body: some View {
         NavigationStack {
@@ -27,7 +33,7 @@ struct TimeSheet: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(Color.cream)
-            .navigationTitle("Pickup time")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

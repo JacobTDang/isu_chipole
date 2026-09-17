@@ -4,6 +4,8 @@ struct CheckoutView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
+    @State private var fulfillment: Fulfillment = .pickup
+    @State private var address = ""
     @State private var location = Menu.locations[0]
     @State private var day: PickupDay = .sunday
     @State private var time = "4:30 PM"
@@ -35,7 +37,7 @@ struct CheckoutView: View {
             LocationSheet(selection: $location)
         }
         .sheet(isPresented: $timeOpen) {
-            TimeSheet(selection: $time)
+            TimeSheet(title: "\(fulfillmentLabel) time", selection: $time)
         }
     }
 
@@ -53,21 +55,54 @@ struct CheckoutView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private var isDelivery: Bool {
+        fulfillment == .delivery
+    }
+
+    private var fulfillmentLabel: String {
+        isDelivery ? "Delivery" : "Pickup"
+    }
+
+    private var cleanAddress: String {
+        address.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Delivery needs somewhere to go before the order can be placed.
+    private var canPlace: Bool {
+        !isPlacing && (!isDelivery || !cleanAddress.isEmpty)
+    }
+
     private var form: some View {
         Form {
             Section {
-                Button {
-                    locationOpen = true
-                } label: {
-                    detailRow(label: "Pickup spot", value: location.name)
+                Picker("Fulfillment", selection: $fulfillment) {
+                    Text("Pickup").tag(Fulfillment.pickup)
+                    Text("Delivery").tag(Fulfillment.delivery)
                 }
-                .listRowBackground(Color.card)
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+
+            Section {
+                if isDelivery {
+                    addressRow
+                        .listRowBackground(Color.card)
+                } else {
+                    Button {
+                        locationOpen = true
+                    } label: {
+                        detailRow(label: "Pickup spot", value: location.name)
+                    }
+                    .listRowBackground(Color.card)
+                }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Pickup day")
+                    Text("\(fulfillmentLabel) day")
                         .font(.body(15))
                         .foregroundStyle(Color.inkSoft)
-                    Picker("Pickup day", selection: $day) {
+                    Picker("\(fulfillmentLabel) day", selection: $day) {
                         ForEach(PickupDay.allCases, id: \.self) { pickupDay in
                             Text(pickupDay.rawValue).tag(pickupDay)
                         }
@@ -81,7 +116,7 @@ struct CheckoutView: View {
                 Button {
                     timeOpen = true
                 } label: {
-                    detailRow(label: "Pickup time", value: time)
+                    detailRow(label: "\(fulfillmentLabel) time", value: time)
                 }
                 .listRowBackground(Color.card)
 
@@ -98,7 +133,7 @@ struct CheckoutView: View {
                     placeOrder()
                 }
                 .buttonStyle(DarkButtonStyle())
-                .disabled(isPlacing)
+                .disabled(!canPlace)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
@@ -121,13 +156,28 @@ struct CheckoutView: View {
                     Text(isPlacing ? "Placing order…" : "Place order")
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .disabled(isPlacing)
+                .disabled(!canPlace)
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 8)
             .background(Color.cream)
         }
+    }
+
+    private var addressRow: some View {
+        HStack(spacing: 12) {
+            Text("Deliver to")
+                .font(.body(17))
+                .foregroundStyle(Color.ink)
+            TextField("Friley Hall, room 2310", text: $address)
+                .font(.body(17))
+                .foregroundStyle(Color.ink)
+                .multilineTextAlignment(.trailing)
+                .textInputAutocapitalization(.words)
+                .submitLabel(.done)
+        }
+        .frame(minHeight: 44)
     }
 
     private func detailRow(label: String, value: String) -> some View {
@@ -150,7 +200,12 @@ struct CheckoutView: View {
     }
 
     private var totals: Totals {
-        Pricing.orderTotals(store.bag, plan: store.plan, promo: store.promo)
+        Pricing.orderTotals(
+            store.bag,
+            plan: store.plan,
+            promo: store.promo,
+            deliveryFee: isDelivery ? Pricing.deliveryFee : 0
+        )
     }
 
     private var ticketLines: [TicketLine] {
@@ -173,13 +228,22 @@ struct CheckoutView: View {
             lines.append(TicketLine(label: "Promo (10%)", amount: "−\(Pricing.money(promoDiscount))"))
         }
         lines.append(TicketLine(label: "Tax · 7%", amount: Pricing.money(totals.tax), muted: true))
+        if isDelivery {
+            lines.append(TicketLine(label: "Delivery", amount: Pricing.money(totals.delivery)))
+        }
         return lines
     }
 
     private func placeOrder() {
-        guard !isPlacing else { return }
+        guard canPlace else { return }
         isPlacing = true
-        placedOrder = store.placeOrder(fulfillment: .pickup, address: nil, location: location, day: day, time: time)
+        placedOrder = store.placeOrder(
+            fulfillment: fulfillment,
+            address: isDelivery ? cleanAddress : nil,
+            location: location,
+            day: day,
+            time: time
+        )
     }
 
     private func rounded(_ value: Decimal) -> Decimal {

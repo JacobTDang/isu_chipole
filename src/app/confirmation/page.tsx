@@ -40,14 +40,17 @@ function Confirmation() {
   if (!ready) return <RequireAuth><div className="min-h-full" /></RequireAuth>;
   if (!order) notFound();
 
+  const delivery = order.fulfillment === "delivery";
+  if (delivery && !order.address) throw new Error(`Delivery order ${order.id} has no address`);
   const lines = [
-    { label: "Pickup", amount: order.location.name },
+    delivery ? { label: "Deliver to", amount: order.address } : { label: "Pickup", amount: order.location.name },
     { label: "Day", amount: order.day },
     { label: "Time", amount: order.time },
     ...order.items.map((item) => ({
       label: `${item.quantity}× ${itemName(item)}`,
       amount: currency.format(itemPrice(item)),
     })),
+    ...(delivery ? [{ label: "Delivery", amount: currency.format(order.deliveryFee) }] : []),
   ];
 
   return (
@@ -74,11 +77,13 @@ function Confirmation() {
         </div>
 
         <p className="mt-5 text-center text-[17px] font-semibold text-ink">
-          Ready at {order.time}
+          {delivery ? "Arrives at" : "Ready at"} {order.time}
         </p>
-        <p className="mt-1 text-center text-[15px] text-ink-soft">
-          {order.location.note}
-        </p>
+        {!delivery && (
+          <p className="mt-1 text-center text-[15px] text-ink-soft">
+            {order.location.note}
+          </p>
+        )}
 
         <div className="mt-auto pt-7">
           <Button type="button" full onClick={() => router.replace("/")}>

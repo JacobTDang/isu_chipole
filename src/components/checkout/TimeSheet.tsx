@@ -5,19 +5,21 @@ import { Sheet } from "../Sheet";
 
 export function TimeSheet({
   open,
+  title = "Pickup time",
   slots,
   value,
   onChange,
   onClose,
 }: {
   open: boolean;
+  title?: string;
   slots: string[];
   value: string;
   onChange(time: string): void;
   onClose(): void;
 }) {
   return (
-    <Sheet open={open} onClose={onClose} title="Pickup time">
+    <Sheet open={open} onClose={onClose} title={title}>
       <div role="radiogroup" className="grid grid-cols-2 gap-2">
         {slots.map((time) => {
           const selected = time === value;

@@ -12,8 +12,9 @@ import { LocationSheet } from "../../components/checkout/LocationSheet";
 import { PromoField } from "../../components/checkout/PromoField";
 import { TimeSheet } from "../../components/checkout/TimeSheet";
 import { LOCATIONS, PICKUP_DAYS, TIME_SLOTS } from "../../data/locations";
-import type { PickupLocation } from "../../data/types";
+import type { Fulfillment, PickupLocation } from "../../data/types";
 import {
+  DELIVERY_FEE,
   mealCount,
   orderTotals,
   planDiscountRate,
@@ -29,10 +30,17 @@ const currency = new Intl.NumberFormat("en-US", {
 
 type Payment = "Visa ending 4242" | "Apple Pay";
 
+const fulfillmentOptions: Array<{ id: Fulfillment; label: string }> = [
+  { id: "pickup", label: "Pickup" },
+  { id: "delivery", label: "Delivery" },
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, plan, promo, ready, setPromo, clear } = useBag();
   const { place } = useOrders();
+  const [fulfillment, setFulfillment] = useState<Fulfillment>("pickup");
+  const [address, setAddress] = useState("");
   const [location, setLocation] = useState<PickupLocation>(LOCATIONS[0]);
   const [day, setDay] = useState<(typeof PICKUP_DAYS)[number]>("Sunday");
   const [time, setTime] = useState("4:30 PM");
@@ -41,7 +49,11 @@ export default function CheckoutPage() {
   const [timeOpen, setTimeOpen] = useState(false);
   const [isPlacing, setIsPlacing] = useState(false);
   const placingOrder = useRef(false);
-  const totals = orderTotals(items, plan, promo);
+  const delivery = fulfillment === "delivery";
+  const deliveryFee = delivery ? DELIVERY_FEE : 0;
+  const cleanAddress = address.trim();
+  const canPlace = !isPlacing && (!delivery || cleanAddress.length > 0);
+  const totals = orderTotals(items, plan, promo, deliveryFee);
   const planRate = planDiscountRate(plan, mealCount(items));
   const currentPromoRate = promoRate(promo);
   const planDiscount = planRate > 0
@@ -60,7 +72,7 @@ export default function CheckoutPage() {
   }
 
   function placeOrder() {
-    if (placingOrder.current) return;
+    if (placingOrder.current || !canPlace) return;
     placingOrder.current = true;
     setIsPlacing(true);
     const { subtotal, discount, tax, total } = totals;
@@ -68,9 +80,9 @@ export default function CheckoutPage() {
       items,
       plan,
       ...(promo ? { promo } : {}),
-      fulfillment: "pickup",
-      address: null,
-      deliveryFee: 0,
+      fulfillment,
+      address: delivery ? cleanAddress : null,
+      deliveryFee,
       location,
       day,
       time,
@@ -92,6 +104,7 @@ export default function CheckoutPage() {
       ? [{ label: "Promo (10%)", amount: `−${currency.format(promoDiscount)}` }]
       : []),
     { label: "Tax", amount: currency.format(totals.tax), muted: true },
+    ...(delivery ? [{ label: "Delivery", amount: currency.format(totals.delivery) }] : []),
   ];
 
   return (
@@ -99,15 +112,40 @@ export default function CheckoutPage() {
       <div className="min-h-full pb-3">
         <InlineNav title="Checkout" backHref="/bag" />
 
-        <GroupedList>
-          <GroupedRow
-            label="Pickup spot"
-            value={location.name}
-            chevron
-            onClick={() => setLocationOpen(true)}
+        <fieldset className="mx-4 mt-5">
+          <legend className="sr-only">Fulfillment</legend>
+          <SegmentedControl
+            options={fulfillmentOptions}
+            value={fulfillment}
+            onChange={(value) => setFulfillment(value as Fulfillment)}
           />
+        </fieldset>
+
+        <GroupedList>
+          {delivery ? (
+            <div className="px-4 py-3">
+              <label htmlFor="delivery-address" className="mb-2 block text-[15px] text-ink-soft">
+                Deliver to
+              </label>
+              <input
+                id="delivery-address"
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                placeholder="Friley Hall, room 2310"
+                autoComplete="street-address"
+                className="min-h-11 w-full rounded-xl border border-line bg-cream px-3 text-[16px] text-ink placeholder:text-ink-soft"
+              />
+            </div>
+          ) : (
+            <GroupedRow
+              label="Pickup spot"
+              value={location.name}
+              chevron
+              onClick={() => setLocationOpen(true)}
+            />
+          )}
           <fieldset className="px-4 py-3">
-            <legend className="mb-2 text-[15px] text-ink-soft">Pickup day</legend>
+            <legend className="mb-2 text-[15px] text-ink-soft">{delivery ? "Delivery day" : "Pickup day"}</legend>
             <SegmentedControl
               options={PICKUP_DAYS.map((pickupDay) => ({
                 id: pickupDay,
@@ -118,7 +156,7 @@ export default function CheckoutPage() {
             />
           </fieldset>
           <GroupedRow
-            label="Pickup time"
+            label={delivery ? "Delivery time" : "Pickup time"}
             value={time}
             chevron
             onClick={() => setTimeOpen(true)}
@@ -153,7 +191,7 @@ export default function CheckoutPage() {
             lines={lines}
             total={{ label: "Total", amount: currency.format(totals.total) }}
           >
-            <Button type="button" full disabled={isPlacing} onClick={placeOrder}>
+            <Button type="button" full disabled={!canPlace} onClick={placeOrder}>
               {isPlacing ? "Placing order…" : "Place order"}
             </Button>
           </Ticket>
@@ -169,6 +207,7 @@ export default function CheckoutPage() {
       />
       <TimeSheet
         open={timeOpen}
+        title={delivery ? "Delivery time" : "Pickup time"}
         slots={TIME_SLOTS}
         value={time}
         onChange={setTime}

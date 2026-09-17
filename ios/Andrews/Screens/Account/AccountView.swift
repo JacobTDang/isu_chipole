@@ -22,9 +22,7 @@ struct AccountView: View {
                 PreferencesSection()
             }
 
-            Section("Health goal") {
-                GoalSection()
-            }
+            GoalSection()
 
             Section {
                 AllergySection()

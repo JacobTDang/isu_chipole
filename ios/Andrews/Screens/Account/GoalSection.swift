@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Four choices as a radio list; "Build muscle" truncates in a four-way
+/// segmented control at phone width.
 struct GoalSection: View {
     @Environment(AppStore.self) private var store
 
@@ -15,21 +17,28 @@ struct GoalSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Section {
             Picker("Health goal", selection: goal) {
-                Text("None").tag(Optional<Goal>.none)
+                goalRow("None").tag(Optional<Goal>.none)
                 ForEach(Goal.allCases, id: \.self) { option in
-                    Text(option.label).tag(Optional(option))
+                    goalRow(option.label).tag(Optional(option))
                 }
             }
-            .pickerStyle(.segmented)
+            .pickerStyle(.inline)
             .labelsHidden()
-
+            .tint(.cardinal)
+            .listRowBackground(Color.card)
+        } header: {
+            Text("Health goal")
+        } footer: {
             Text(store.prefs.goal?.targetDescription ?? "No target set.")
-                .font(.body(13))
-                .foregroundStyle(Color.inkSoft)
         }
-        .padding(.vertical, 4)
-        .listRowBackground(Color.card)
+    }
+
+    private func goalRow(_ label: String) -> some View {
+        Text(label)
+            .font(.body(17))
+            .foregroundStyle(Color.ink)
+            .frame(minHeight: 44)
     }
 }

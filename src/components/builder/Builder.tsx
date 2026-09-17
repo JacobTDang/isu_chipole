@@ -75,7 +75,7 @@ function BuilderContent({ initial, title, image, editingId, removed, preferences
   const { show } = useToast();
   const router = useRouter();
   const { allergies, goal, budget } = preferences;
-  const selectedGroups = (group: IngredientGroup) => selection.ingredientIds.filter((id) => ingredientsInGroup(group).some((option) => option.id === id));
+  const selectedGroups = (group: IngredientGroup) => selection.ingredientIds.filter((id) => ingredientsInGroup(group, selection.mealType).some((option) => option.id === id));
   const requiredComplete = selectedGroups("base").length === 1 && selectedGroups("protein").length === 1;
   const nutrition = macros(selection);
   const total = itemPrice(selection);
@@ -86,7 +86,7 @@ function BuilderContent({ initial, title, image, editingId, removed, preferences
   if (budget !== null) ticketLines.push({ label: <BudgetLine budget={budget} price={unitPrice} /> });
 
   const changeGroup = (group: IngredientGroup, ids: string[]) => {
-    const groupIds = new Set(ingredientsInGroup(group).map((option) => option.id));
+    const groupIds = new Set(ingredientsInGroup(group, selection.mealType).map((option) => option.id));
     setSelection((current) => ({ ...current, ingredientIds: [...current.ingredientIds.filter((id) => !groupIds.has(id)), ...ids] }));
   };
 
@@ -114,7 +114,7 @@ function BuilderContent({ initial, title, image, editingId, removed, preferences
       <MacroLine calories={nutrition.calories} protein={nutrition.protein} status={goal ? goalStatus(goal, nutrition) : undefined} />
       <div className="bg-cream">
         {removed.length > 0 && <p role="status" className="mx-4 mt-4 rounded-xl border border-cardinal/30 bg-cardinal/10 px-4 py-3 text-[15px] font-semibold text-cardinal">{removedCaption(removed, allergies)}</p>}
-        {sections.map((section) => <BuilderSection key={section.group} {...section} options={ingredientsInGroup(section.group)} selected={selectedGroups(section.group)} allergies={allergies} onChange={(ids) => changeGroup(section.group, ids)} />)}
+        {sections.map((section) => <BuilderSection key={section.group} {...section} options={ingredientsInGroup(section.group, selection.mealType)} selected={selectedGroups(section.group)} allergies={allergies} onChange={(ids) => changeGroup(section.group, ids)} />)}
         <section className="border-t border-line px-4 py-6">
           <label htmlFor="meal-name" className="font-display text-[22px] font-extrabold tracking-[-0.02em] text-ink">Name this meal</label>
           <p className="mt-1 text-[13px] text-ink-soft">Optional — save a favorite for next time.</p>

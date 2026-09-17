@@ -87,6 +87,12 @@ struct BagRow: View {
                     actionLabel("Duplicate")
                 }
                 .buttonStyle(.plain)
+                Button(role: .destructive) {
+                    store.remove(item.id)
+                } label: {
+                    actionLabel("Remove")
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 16)

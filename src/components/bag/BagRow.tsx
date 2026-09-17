@@ -10,7 +10,7 @@ import { MealImage } from "../MealImage";
 import { QuantityStepper } from "../builder/QuantityStepper";
 
 export function BagRow({ item }: { item: BagItem }) {
-  const { duplicate, setQuantity } = useBag();
+  const { duplicate, remove, setQuantity } = useBag();
   const type = mealType(item.mealType);
   const presetMeal = item.presetId ? preset(item.presetId) : undefined;
   const title = item.name || presetMeal?.name || `Custom ${type.name}`;
@@ -28,10 +28,11 @@ export function BagRow({ item }: { item: BagItem }) {
         </div>
       </div>
       <div className="mt-4 flex items-center justify-between gap-2">
-        <QuantityStepper value={item.quantity} onChange={(quantity) => setQuantity(item.id, quantity)} label={`Quantity for ${title}`} />
-        <div className="flex items-center">
-          <Link href={`/menu/${item.mealType}?edit=${item.id}`} className="flex min-h-11 items-center rounded-lg px-3 text-[15px] font-semibold text-cardinal">Edit</Link>
-          <button type="button" onClick={() => duplicate(item.id)} className="min-h-11 rounded-lg px-3 text-[15px] font-semibold text-cardinal">Duplicate</button>
+        <QuantityStepper value={item.quantity} min={0} onChange={(quantity) => quantity === 0 ? remove(item.id) : setQuantity(item.id, quantity)} label={`Quantity for ${title}`} />
+        <div className="flex items-center gap-1">
+          <Link href={`/menu/${item.mealType}?edit=${item.id}`} className="flex min-h-11 items-center rounded-lg px-2.5 text-[15px] font-semibold text-cardinal hover:opacity-80">Edit</Link>
+          <button type="button" onClick={() => duplicate(item.id)} className="min-h-11 rounded-lg px-2.5 text-[15px] font-semibold text-cardinal hover:opacity-80">Duplicate</button>
+          <button type="button" onClick={() => remove(item.id)} className="min-h-11 rounded-lg px-2.5 text-[15px] font-semibold text-cardinal hover:opacity-80" aria-label={`Remove ${title} from order`}>Remove</button>
         </div>
       </div>
     </article>

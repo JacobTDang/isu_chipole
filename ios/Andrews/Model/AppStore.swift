@@ -88,6 +88,10 @@ final class AppStore {
     }
 
     func setQuantity(_ id: String, _ q: Int) {
+        if q <= 0 {
+            remove(id)
+            return
+        }
         guard 1...10 ~= q else {
             preconditionFailure("Quantity must be from 1 to 10")
         }

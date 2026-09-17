@@ -21,8 +21,26 @@ struct PlanCard: View {
         Pricing.mealCount(store.bag)
     }
 
-    private var remaining: Int {
-        max(store.plan.rawValue - count, 0)
+    private var effectivePlan: PlanSize {
+        if count >= 10 { return .ten }
+        if count >= 7 { return store.plan == .ten ? .ten : .seven }
+        if count >= 5 { return store.plan == .ten ? .ten : (store.plan == .seven ? .seven : .five) }
+        return store.plan
+    }
+
+    private var discountRate: Decimal {
+        Pricing.planDiscountRate(effectivePlan, count: count)
+    }
+
+    private var discountPercent: Int {
+        NSDecimalNumber(decimal: discountRate * 100).intValue
+    }
+
+    private var nextTier: (target: Int, discount: String)? {
+        if count < 5 { return (5, "15%") }
+        if count < 7 { return (7, "20%") }
+        if count < 10 { return (10, "25%") }
+        return nil
     }
 
     var body: some View {
@@ -30,7 +48,7 @@ struct PlanCard: View {
             isPresented = true
         } label: {
             HStack(spacing: 12) {
-                Text("\(store.plan.rawValue)")
+                Text("\(effectivePlan.rawValue)")
                     .font(.display(18))
                     .foregroundStyle(Color.ink)
                     .frame(width: 44, height: 44)
@@ -41,11 +59,19 @@ struct PlanCard: View {
                     Text("Meals this week")
                         .font(.body(17, weight: .semibold))
                         .foregroundStyle(Color.ink)
-                    Text("\(count) of \(store.plan.rawValue) meals · \(store.plan.discountLabel)")
+                    let discountText = discountPercent > 0 ? "Save \(discountPercent)% auto-applied" : effectivePlan.discountLabel
+                    Text("\(count) meal\(count == 1 ? "" : "s") · \(discountText)")
                         .font(.body(13))
                         .foregroundStyle(Color.inkSoft)
-                    if remaining > 0 {
-                        Text("Add \(remaining) more to fill your plan")
+                    if let nextTier {
+                        let remaining = nextTier.target - count
+                        let label = discountPercent > 0 ? "Add \(remaining) more to bump to \(nextTier.discount) off" : "Add \(remaining) more to save \(nextTier.discount)"
+                        Text(label)
+                            .font(.body(13, weight: .semibold))
+                            .foregroundStyle(Color.cardinal)
+                            .padding(.top, 2)
+                    } else {
+                        Text("Max 25% bulk discount unlocked!")
                             .font(.body(13, weight: .semibold))
                             .foregroundStyle(Color.cardinal)
                             .padding(.top, 2)

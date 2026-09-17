@@ -114,7 +114,7 @@ final class FlowTests: XCTestCase {
             try require(app.buttons["Apply"], "Apply button").tap()
             try require(staticText(containing: "Promo"), "Promo line")
             try require(app.staticTexts["Delivery"], "Delivery ticket line")
-            try require(staticText(containing: "$68.25"), "total $68.25")
+            try require(staticText(containing: "$56.73"), "total $56.73")
             settle()
             snap("06-checkout")
         }
@@ -129,7 +129,7 @@ final class FlowTests: XCTestCase {
             try require(app.staticTexts["Deliver to"], "Deliver to ticket line")
             try require(app.staticTexts["Friley Hall, room 2310"], "delivery address on the ticket")
             try require(app.staticTexts["Arrives at 4:30 PM"], "Arrives at 4:30 PM")
-            try require(app.staticTexts["$68.25"], "total $68.25")
+            try require(app.staticTexts["$56.73"], "total $56.73")
             settle()
             snap("07-confirmation")
             try require(app.buttons["Back to home"], "Back to home button").tap()

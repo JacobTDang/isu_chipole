@@ -82,6 +82,12 @@ export function preset(id: string): PresetMeal {
   return value;
 }
 
-export function ingredientsInGroup(group: IngredientGroup): Ingredient[] {
-  return INGREDIENTS.filter((item) => item.group === group);
+export function ingredientsInGroup(group: IngredientGroup, mealTypeId?: MealTypeId): Ingredient[] {
+  const all = INGREDIENTS.filter((item) => item.group === group);
+  if (group !== "base" || !mealTypeId) return all;
+  if (mealTypeId === "pasta") {
+    return all.filter((item) => item.id === "pasta");
+  }
+  return all.filter((item) => item.id !== "pasta");
 }
+

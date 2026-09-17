@@ -15,12 +15,13 @@ describe("pricing", () => {
     expect(bagSubtotal(items)).toBe(17);
     expect(mealCount(items)).toBe(2);
   });
-  it("applies plan discounts only when filled", () => {
+  it("applies plan discounts only when filled and auto-applies earned tier", () => {
     expect(planDiscountRate(5, 4)).toBe(0);
     expect(planDiscountRate(5, 5)).toBe(0.15);
-    expect(planDiscountRate(7, 6)).toBe(0);
+    expect(planDiscountRate(7, 6)).toBe(0.15);
     expect(planDiscountRate(7, 7)).toBe(0.2);
     expect(planDiscountRate(10, 12)).toBe(0.25);
+    expect(planDiscountRate(5, 10)).toBe(0.25);
   });
   it("recognizes the promo code case-insensitively", () => {
     expect(promoRate("cyclone10")).toBe(0.1);

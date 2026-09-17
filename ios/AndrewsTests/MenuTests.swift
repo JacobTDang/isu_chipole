@@ -92,4 +92,15 @@ struct MenuImageTests {
         #expect(Menu.image(for: twoAddOns) == "salad")
         #expect(Menu.image(for: otherExtra) == "pasta")
     }
+
+    @Test
+    func pastaBasesExcludeRice() {
+        let pastaBases = Menu.ingredients(in: .base, mealType: .pasta)
+        #expect(pastaBases.map(\.id) == ["pasta"])
+        #expect(!pastaBases.contains { $0.id.contains("rice") })
+
+        let bowlBases = Menu.ingredients(in: .base, mealType: .bowl)
+        #expect(!bowlBases.contains { $0.id == "pasta" })
+        #expect(bowlBases.contains { $0.id == "white-rice" })
+    }
 }

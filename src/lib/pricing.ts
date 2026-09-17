@@ -22,12 +22,22 @@ export function mealCount(items: BagItem[]): number {
   return items.reduce((sum, item) => sum + item.quantity, 0);
 }
 
-export function planDiscountRate(plan: PlanSize, count: number): number {
-  if (count < plan) return 0;
-  if (plan === 5) return 0.15;
-  if (plan === 7) return 0.2;
-  if (plan === 10) return 0.25;
+export function autoDiscountRate(count: number): number {
+  if (count >= 10) return 0.25;
+  if (count >= 7) return 0.2;
+  if (count >= 5) return 0.15;
   return 0;
+}
+
+export function planDiscountRate(plan: PlanSize, count: number): number {
+  const earned = autoDiscountRate(count);
+  let fromPlan = 0;
+  if (count >= plan) {
+    if (plan === 5) fromPlan = 0.15;
+    else if (plan === 7) fromPlan = 0.2;
+    else if (plan === 10) fromPlan = 0.25;
+  }
+  return Math.max(earned, fromPlan);
 }
 
 export function promoRate(code: string | undefined): number {

@@ -14,6 +14,10 @@ export default async function MenuPage({ params }: { params: Promise<{ mealType:
   const { mealType: id } = await params;
   if (!MEAL_TYPES.some((type) => type.id === id)) notFound();
   const type = mealType(id as MealTypeId);
-  const initial: Selection = { mealType: type.id, ingredientIds: [], quantity: 1 };
+  const initial: Selection = {
+    mealType: type.id,
+    ingredientIds: type.id === "pasta" ? ["pasta"] : [],
+    quantity: 1,
+  };
   return <RequireAuth><MenuPageClient initial={initial} title={type.name} image={type.image} /></RequireAuth>;
 }

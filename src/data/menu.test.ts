@@ -15,4 +15,15 @@ describe("allergen data", () => {
       for (const allergen of item.allergens) expect(ALLERGENS).toContain(allergen);
     }
   });
+
+  it("filters base ingredients so pasta only allows pasta and no rice", async () => {
+    const { ingredientsInGroup } = await import("./menu");
+    const pastaBases = ingredientsInGroup("base", "pasta");
+    expect(pastaBases.map((b) => b.id)).toEqual(["pasta"]);
+    expect(pastaBases.some((b) => b.id.includes("rice"))).toBe(false);
+
+    const bowlBases = ingredientsInGroup("base", "bowl");
+    expect(bowlBases.some((b) => b.id === "pasta")).toBe(false);
+    expect(bowlBases.some((b) => b.id === "white-rice")).toBe(true);
+  });
 });

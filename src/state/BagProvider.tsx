@@ -40,7 +40,11 @@ export function BagProvider({ children }: { children: ReactNode }) {
       return [...current, { ...found, id: newBagItemId() }];
     }),
     setQuantity: (id, q) => {
-      if (!Number.isInteger(q) || q < 1 || q > 10) throw new Error("Quantity must be from 1 to 10");
+      if (q <= 0) {
+        setItems((current) => current.filter((item) => item.id !== id));
+        return;
+      }
+      if (!Number.isInteger(q) || q > 10) throw new Error("Quantity must be from 1 to 10");
       setItems((current) => current.map((item) => item.id === id ? { ...item, quantity: q } : item));
     },
     setPlan: setPlanState,

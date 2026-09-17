@@ -55,9 +55,10 @@ struct PricingTests {
     func appliesPlanDiscountsOnlyWhenFilled() {
         #expect(Pricing.planDiscountRate(.five, count: 4) == 0)
         #expect(Pricing.planDiscountRate(.five, count: 5) == 0.15)
-        #expect(Pricing.planDiscountRate(.seven, count: 6) == 0)
+        #expect(Pricing.planDiscountRate(.seven, count: 6) == 0.15)
         #expect(Pricing.planDiscountRate(.seven, count: 7) == 0.20)
         #expect(Pricing.planDiscountRate(.ten, count: 12) == 0.25)
+        #expect(Pricing.planDiscountRate(.five, count: 10) == 0.25)
     }
 
     @Test

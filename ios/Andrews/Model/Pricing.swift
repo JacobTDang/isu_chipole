@@ -20,16 +20,26 @@ enum Pricing {
         items.reduce(0) { $0 + $1.selection.quantity }
     }
 
+    static func autoDiscountRate(count: Int) -> Decimal {
+        if count >= 10 { return 0.25 }
+        if count >= 7 { return 0.20 }
+        if count >= 5 { return 0.15 }
+        return 0
+    }
+
     static func planDiscountRate(_ plan: PlanSize, count: Int) -> Decimal {
-        guard count >= plan.rawValue else { return 0 }
-        switch plan {
-        case .five:
-            return 0.15
-        case .seven:
-            return 0.20
-        case .ten:
-            return 0.25
+        let earnedRate = autoDiscountRate(count: count)
+        let planRate: Decimal
+        if count >= plan.rawValue {
+            switch plan {
+            case .five: planRate = 0.15
+            case .seven: planRate = 0.20
+            case .ten: planRate = 0.25
+            }
+        } else {
+            planRate = 0
         }
+        return max(earnedRate, planRate)
     }
 
     static func promoRate(_ code: String?) -> Decimal {

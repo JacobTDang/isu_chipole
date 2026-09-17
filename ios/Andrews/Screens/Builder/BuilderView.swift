@@ -21,7 +21,11 @@ struct BuilderView: View {
             let type = Menu.mealType(typeId)
             BuilderForm(
                 mode: mode,
-                initial: Selection(mealType: type.id, ingredientIds: [], quantity: 1),
+                initial: Selection(
+                    mealType: type.id,
+                    ingredientIds: type.id == .pasta ? ["pasta"] : [],
+                    quantity: 1
+                ),
                 title: type.name,
                 image: type.image
             )
@@ -122,7 +126,7 @@ private struct BuilderForm: View {
                     BuilderSection(
                         title: spec.title,
                         rule: spec.rule,
-                        options: Menu.ingredients(in: spec.group),
+                        options: Menu.ingredients(in: spec.group, mealType: selection.mealType),
                         selected: selectedIds(in: spec.group),
                         mode: spec.mode,
                         allergies: store.prefs.allergies

@@ -101,7 +101,12 @@ enum Menu {
         return value
     }
 
-    static func ingredients(in group: IngredientGroup) -> [Ingredient] {
-        ingredients.filter { $0.group == group }
+    static func ingredients(in group: IngredientGroup, mealType: MealTypeId? = nil) -> [Ingredient] {
+        let all = ingredients.filter { $0.group == group }
+        guard group == .base, let mealType else { return all }
+        if mealType == .pasta {
+            return all.filter { $0.id == "pasta" }
+        }
+        return all.filter { $0.id != "pasta" }
     }
 }

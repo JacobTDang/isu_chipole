@@ -80,6 +80,84 @@ struct PricingTests {
     }
 
     @Test
+    func addsUntaxedDeliveryFeeToOrderTotals() {
+        var selection = bowl
+        selection.quantity = 10
+        let totals = Pricing.orderTotals(
+            [BagItem(id: "ten", selection: selection)],
+            plan: .ten,
+            promo: "CYCLONE10",
+            deliveryFee: Pricing.deliveryFee
+        )
+        #expect(totals.subtotal == 85.00)
+        #expect(totals.discount == 17.00)
+        #expect(totals.tax == Decimal(string: "4.76"))
+        #expect(totals.delivery == Decimal(string: "2.99"))
+        #expect(totals.total == Decimal(string: "75.75"))
+    }
+
+    @Test
+    func pickupOrdersHaveNoDeliveryLine() {
+        let totals = Pricing.orderTotals([BagItem(id: "one", selection: bowl)], plan: .five, promo: nil)
+        #expect(totals.delivery == 0)
+        #expect(totals.total == Decimal(string: "9.10"))
+    }
+
+    @Test
+    func deliveryFeeIsTwoNinetyNine() {
+        #expect(Pricing.deliveryFee == Decimal(string: "2.99"))
+    }
+
+    @Test
+    func goalStatusMuscleOnTarget() {
+        let status = Pricing.goalStatus(.muscle, macros: (calories: 805, protein: 59))
+        #expect(status.onTarget == true)
+        #expect(status.message == "On target")
+    }
+
+    @Test
+    func goalStatusLoseReportsCaloriesOver() {
+        let status = Pricing.goalStatus(.lose, macros: (calories: 805, protein: 59))
+        #expect(status.onTarget == false)
+        #expect(status.message == "305 cal over")
+    }
+
+    @Test
+    func goalStatusProteinShortWinsOverCalorieMiss() {
+        let status = Pricing.goalStatus(.muscle, macros: (calories: 600, protein: 30))
+        #expect(status.onTarget == false)
+        #expect(status.message == "15g protein short")
+    }
+
+    @Test
+    func goalStatusMaintainOnTargetAtUpperBound() {
+        let status = Pricing.goalStatus(.maintain, macros: (calories: 690, protein: 30))
+        #expect(status.onTarget == true)
+        #expect(status.message == "On target")
+    }
+
+    @Test
+    func goalStatusReportsCaloriesUnder() {
+        let status = Pricing.goalStatus(.muscle, macros: (calories: 515, protein: 50))
+        #expect(status.onTarget == false)
+        #expect(status.message == "80 cal under")
+    }
+
+    @Test
+    func budgetStatusWithinBudget() {
+        let status = Pricing.budgetStatus(budget: 10, price: 7.75)
+        #expect(status.over == false)
+        #expect(status.remaining == Decimal(string: "2.25"))
+    }
+
+    @Test
+    func budgetStatusOverBudget() {
+        let status = Pricing.budgetStatus(budget: 10, price: 11.50)
+        #expect(status.over == true)
+        #expect(status.remaining == Decimal(string: "-1.50"))
+    }
+
+    @Test
     func formatsMoneyWithTwoDecimalPlaces() {
         #expect(Pricing.money(10.25) == "$10.25")
         #expect(Pricing.money(8.5) == "$8.50")

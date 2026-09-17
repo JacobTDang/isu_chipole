@@ -146,6 +146,52 @@ enum Goal: String, Codable, CaseIterable, Hashable {
     case muscle
     case lose
     case maintain
+
+    var label: String {
+        switch self {
+        case .muscle:
+            return "Build muscle"
+        case .lose:
+            return "Lose weight"
+        case .maintain:
+            return "Maintain"
+        }
+    }
+
+    /// Calorie target per meal. `range` is the on-target band; `lose` has
+    /// only a ceiling.
+    var calorieRange: ClosedRange<Int> {
+        switch self {
+        case .muscle:
+            return 595...805
+        case .lose:
+            return 0...500
+        case .maintain:
+            return 510...690
+        }
+    }
+
+    var minimumProtein: Int {
+        switch self {
+        case .muscle:
+            return 45
+        case .lose:
+            return 35
+        case .maintain:
+            return 30
+        }
+    }
+
+    var targetDescription: String {
+        switch self {
+        case .muscle:
+            return "About 700 cal and 45g+ protein per meal"
+        case .lose:
+            return "Up to 500 cal and 35g+ protein per meal"
+        case .maintain:
+            return "About 600 cal and 30g+ protein per meal"
+        }
+    }
 }
 
 struct Preferences: Codable, Hashable {
@@ -176,5 +222,6 @@ struct Totals: Hashable {
     let subtotal: Decimal
     let discount: Decimal
     let tax: Decimal
+    let delivery: Decimal
     let total: Decimal
 }

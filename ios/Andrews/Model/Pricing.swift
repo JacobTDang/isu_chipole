@@ -2,6 +2,7 @@ import Foundation
 
 enum Pricing {
     static let taxRate: Decimal = 0.07
+    static let deliveryFee = Decimal(sign: .plus, exponent: -2, significand: 299)
 
     static func itemPrice(_ sel: Selection) -> Decimal {
         let selected = sel.ingredientIds.map(Menu.ingredient)
@@ -37,7 +38,13 @@ enum Pricing {
             : 0
     }
 
-    static func orderTotals(_ items: [BagItem], plan: PlanSize, promo: String?) -> Totals {
+    /// The delivery fee is added after tax and is not taxed.
+    static func orderTotals(
+        _ items: [BagItem],
+        plan: PlanSize,
+        promo: String?,
+        deliveryFee: Decimal = 0
+    ) -> Totals {
         let subtotalRaw = items.reduce(Decimal.zero) { $0 + itemPrice($1.selection) }
         let discountRate = planDiscountRate(plan, count: mealCount(items)) + promoRate(promo)
         let discountRaw = subtotalRaw * discountRate
@@ -46,8 +53,33 @@ enum Pricing {
             subtotal: rounded(subtotalRaw),
             discount: rounded(discountRaw),
             tax: rounded(taxRaw),
-            total: rounded(subtotalRaw - discountRaw + taxRaw)
+            delivery: rounded(deliveryFee),
+            total: rounded(subtotalRaw - discountRaw + taxRaw + deliveryFee)
         )
+    }
+
+    /// Names the worst miss only, protein before calories.
+    static func goalStatus(
+        _ goal: Goal,
+        macros: (calories: Int, protein: Int)
+    ) -> (onTarget: Bool, message: String) {
+        let proteinShort = goal.minimumProtein - macros.protein
+        if proteinShort > 0 {
+            return (false, "\(proteinShort)g protein short")
+        }
+        let range = goal.calorieRange
+        if macros.calories > range.upperBound {
+            return (false, "\(macros.calories - range.upperBound) cal over")
+        }
+        if macros.calories < range.lowerBound {
+            return (false, "\(range.lowerBound - macros.calories) cal under")
+        }
+        return (true, "On target")
+    }
+
+    static func budgetStatus(budget: Decimal, price: Decimal) -> (over: Bool, remaining: Decimal) {
+        let remaining = rounded(budget - price)
+        return (remaining < 0, remaining)
     }
 
     static func macros(_ sel: Selection) -> (calories: Int, protein: Int) {

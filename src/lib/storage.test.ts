@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { JSDOM } from "jsdom";
-import type { BagItem } from "../data/types";
-import { clearAll, KEYS, readBagState, writeBagState } from "./storage";
+import type { BagItem, Order } from "../data/types";
+import { clearAll, KEYS, readBagState, readOrders, writeBagState, writeOrders } from "./storage";
 
 const item: BagItem = { id: "item-1", mealType: "bowl", ingredientIds: ["white-rice", "tofu"], quantity: 1 };
+const location = { id: "memorial-union", name: "Memorial Union", note: "Main Lounge entrance" };
+const legacyOrder = {
+  id: "PP-0001", items: [item], plan: 5 as const, location, day: "Sunday" as const, time: "4:30 PM",
+  subtotal: 7.5, discount: 0, tax: 0.53, total: 8.03, placedAt: "2026-09-01T00:00:00.000Z",
+};
 
 describe("storage", () => {
   beforeEach(() => {
@@ -29,6 +34,22 @@ describe("storage", () => {
 
   it("returns the five-meal default when no bag state is stored", () => {
     expect(readBagState()).toEqual({ items: [], plan: 5 });
+  });
+
+  it("round-trips a delivery order", () => {
+    const order: Order = { ...legacyOrder, fulfillment: "delivery", address: "Friley Hall, room 2310", deliveryFee: 2.99, total: 11.02 };
+    writeOrders([order]);
+    expect(readOrders()).toEqual([order]);
+  });
+
+  it("reads orders stored before delivery as pickup with no fee", () => {
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([legacyOrder]));
+    expect(readOrders()).toEqual([{ ...legacyOrder, fulfillment: "pickup", address: null, deliveryFee: 0 }]);
+  });
+
+  it("throws when a delivery order has no address", () => {
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...legacyOrder, fulfillment: "delivery", address: null, deliveryFee: 2.99 }]));
+    expect(() => readOrders()).toThrow(/andrews\.orders/);
   });
 
   it("clears every PrepPal key", () => {

@@ -4,7 +4,7 @@ import { points, tier } from "./rewards";
 
 function order(total: number): Order {
   return {
-    id: "PP-1234", items: [], plan: 5,
+    id: "PP-1234", items: [], plan: 5, fulfillment: "pickup", address: null, deliveryFee: 0,
     location: { id: "memorial-union", name: "Memorial Union", note: "Main Lounge entrance" },
     day: "Sunday", time: "4:30 PM", subtotal: total, discount: 0, tax: 0, total,
     placedAt: "2026-09-15T00:00:00.000Z",

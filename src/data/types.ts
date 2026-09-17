@@ -45,12 +45,16 @@ export type BagItem = Selection & { id: string };
 export type PlanSize = 5 | 7 | 10;
 export type PickupLocation = { id: string; name: string; note: string };
 export type User = { email: string; firstName: string };
+export type Fulfillment = "pickup" | "delivery";
 
 export type Order = {
   id: string;
   items: BagItem[];
   plan: PlanSize;
   promo?: string;
+  fulfillment: Fulfillment;
+  address: string | null;
+  deliveryFee: number;
   location: PickupLocation;
   day: "Sunday" | "Wednesday";
   time: string;

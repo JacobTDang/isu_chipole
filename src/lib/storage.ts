@@ -1,4 +1,4 @@
-import type { BagItem, MealTypeId, Order, PickupLocation, PlanSize, Selection, User } from "../data/types";
+import type { BagItem, Fulfillment, MealTypeId, Order, PickupLocation, PlanSize, Selection, User } from "../data/types";
 
 export const KEYS = {
   user: "andrews.user",
@@ -39,12 +39,21 @@ const isPlan = (value: unknown): value is PlanSize => value === 5 || value === 7
 const isLocation = (value: unknown): value is PickupLocation => isObject(value) && isString(value.id) && isString(value.name) && isString(value.note);
 const isUser = (value: unknown): value is User => isObject(value) && isString(value.email) && isString(value.firstName);
 
+const isFulfillment = (value: unknown): value is Fulfillment => value === "pickup" || value === "delivery";
+
 function isOrder(value: unknown): value is Order {
   return isObject(value) && isString(value.id) && Array.isArray(value.items) && value.items.every(isBagItem)
     && isPlan(value.plan) && (value.promo === undefined || isString(value.promo)) && isLocation(value.location)
+    && isFulfillment(value.fulfillment) && isNumber(value.deliveryFee)
+    && (value.fulfillment === "delivery" ? isString(value.address) && value.address.length > 0 : value.address === null)
     && (value.day === "Sunday" || value.day === "Wednesday") && isString(value.time)
     && isNumber(value.subtotal) && isNumber(value.discount) && isNumber(value.tax) && isNumber(value.total)
     && isString(value.placedAt);
+}
+
+function migrateOrder(value: unknown): unknown {
+  if (!isObject(value) || value.fulfillment !== undefined || value.address !== undefined || value.deliveryFee !== undefined) return value;
+  return { ...value, fulfillment: "pickup", address: null, deliveryFee: 0 };
 }
 
 function invalid(key: string, reason: string): never {
@@ -80,8 +89,10 @@ export function writeUser(user: User | null): void { write(KEYS.user, user); }
 export function readOrders(): Order[] {
   const value = parse(KEYS.orders);
   if (value === null) return [];
-  if (!Array.isArray(value) || !value.every(isOrder)) return invalid(KEYS.orders, "orders shape is invalid");
-  return value;
+  if (!Array.isArray(value)) return invalid(KEYS.orders, "orders shape is invalid");
+  const orders = value.map(migrateOrder);
+  if (!orders.every(isOrder)) return invalid(KEYS.orders, "orders shape is invalid");
+  return orders;
 }
 
 export function writeOrders(orders: Order[]): void { write(KEYS.orders, orders); }

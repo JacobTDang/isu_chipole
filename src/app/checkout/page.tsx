@@ -63,14 +63,21 @@ export default function CheckoutPage() {
     if (placingOrder.current) return;
     placingOrder.current = true;
     setIsPlacing(true);
+    const { subtotal, discount, tax, total } = totals;
     const order = place({
       items,
       plan,
       ...(promo ? { promo } : {}),
+      fulfillment: "pickup",
+      address: null,
+      deliveryFee: 0,
       location,
       day,
       time,
-      ...totals,
+      subtotal,
+      discount,
+      tax,
+      total,
     });
     clear();
     router.replace(`/confirmation?id=${order.id}`);

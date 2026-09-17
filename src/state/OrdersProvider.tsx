@@ -24,6 +24,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const value = useMemo<OrdersValue>(() => ({
     orders, saved, ready,
     place(input) {
+      if (input.fulfillment === "delivery" && !input.address?.trim()) throw new Error("Delivery orders need an address");
+      if (input.fulfillment === "pickup" && (input.address !== null || input.deliveryFee !== 0)) throw new Error("Pickup orders have no address or delivery fee");
       const order: Order = { ...input, id: newOrderId(), placedAt: new Date().toISOString() };
       const next = [...orders, order];
       writeOrders(next);

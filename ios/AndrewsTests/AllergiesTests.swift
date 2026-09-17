@@ -10,6 +10,16 @@ struct AllergiesTests {
     }
 
     @Test
+    func mealCaptionNamesEverySelectedAllergenInTheMeal() {
+        let cyclone = Menu.preset("cyclone-bowl")
+        let pesto = Menu.preset("campanile-pesto-pasta")
+        #expect(Allergies.caption(forIngredientIds: cyclone.ingredientIds, allergies: [.dairy]) == "Contains dairy")
+        #expect(Allergies.caption(forIngredientIds: pesto.ingredientIds, allergies: [.nuts, .gluten]) == "Contains gluten, nuts")
+        #expect(Allergies.caption(forIngredientIds: cyclone.ingredientIds, allergies: [.fish]) == nil)
+        #expect(Allergies.caption(forIngredientIds: cyclone.ingredientIds, allergies: []) == nil)
+    }
+
+    @Test
     func captionIsNilWhenNothingConflicts() {
         #expect(Allergies.caption(for: Menu.ingredient("cheese"), allergies: [.nuts]) == nil)
         #expect(Allergies.caption(for: Menu.ingredient("grilled-chicken"), allergies: Allergen.allCases) == nil)

@@ -1,15 +1,27 @@
 import Foundation
 
 enum Allergies {
-    /// The selected allergens this ingredient contains, in the ingredient's
-    /// own order.
+    /// The selected allergens this ingredient contains, in `Allergen` order.
     static func conflicts(in ingredient: Ingredient, allergies: [Allergen]) -> [Allergen] {
-        ingredient.allergens.filter { allergies.contains($0) }
+        Allergen.allCases.filter { ingredient.allergens.contains($0) && allergies.contains($0) }
     }
 
     /// "Contains dairy, eggs", or nil when the ingredient is safe.
     static func caption(for ingredient: Ingredient, allergies: [Allergen]) -> String? {
-        let found = conflicts(in: ingredient, allergies: allergies)
+        caption(found: conflicts(in: ingredient, allergies: allergies))
+    }
+
+    /// The same caption for a whole meal, naming every selected allergen any
+    /// of its ingredients contains.
+    static func caption(forIngredientIds ids: [String], allergies: [Allergen]) -> String? {
+        let ingredients = ids.map(Menu.ingredient)
+        let found = Allergen.allCases.filter { allergen in
+            allergies.contains(allergen) && ingredients.contains { $0.allergens.contains(allergen) }
+        }
+        return caption(found: found)
+    }
+
+    private static func caption(found: [Allergen]) -> String? {
         guard !found.isEmpty else { return nil }
         return "Contains " + found.map(\.rawValue).joined(separator: ", ")
     }

@@ -4,6 +4,7 @@ enum OrderFilter: String, CaseIterable, Identifiable {
     case highProtein
     case vegetarian
     case underTen
+    case inBudget
 
     var id: String { rawValue }
 
@@ -15,10 +16,17 @@ enum OrderFilter: String, CaseIterable, Identifiable {
             return "Vegetarian"
         case .underTen:
             return "Under $10"
+        case .inBudget:
+            return "In budget"
         }
     }
 
-    func matches(_ meal: PresetMeal) -> Bool {
+    /// The chips to show; "In budget" only exists once a budget is set.
+    static func available(budget: Decimal?) -> [OrderFilter] {
+        allCases.filter { $0 != .inBudget || budget != nil }
+    }
+
+    func matches(_ meal: PresetMeal, budget: Decimal?) -> Bool {
         let selection = Selection(mealType: meal.mealType, ingredientIds: meal.ingredientIds, quantity: 1, presetId: meal.id)
         switch self {
         case .highProtein:
@@ -27,16 +35,22 @@ enum OrderFilter: String, CaseIterable, Identifiable {
             return meal.tags.contains(.veg)
         case .underTen:
             return Pricing.itemPrice(selection) < 10
+        case .inBudget:
+            guard let budget else {
+                preconditionFailure("The In budget filter needs a budget")
+            }
+            return Pricing.itemPrice(selection) <= budget
         }
     }
 }
 
 struct FilterChips: View {
+    let available: [OrderFilter]
     @Binding var selected: Set<OrderFilter>
 
     var body: some View {
         HStack(spacing: 8) {
-            ForEach(OrderFilter.allCases) { filter in
+            ForEach(available) { filter in
                 PillButton(
                     label: filter.label,
                     price: nil,

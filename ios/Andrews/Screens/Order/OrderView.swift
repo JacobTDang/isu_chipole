@@ -53,10 +53,19 @@ struct OrderView: View {
         Menu.mealType(segment.mealType ?? .bowl)
     }
 
+    private var budget: Decimal? {
+        store.prefs.budget
+    }
+
+    private var availableFilters: [OrderFilter] {
+        OrderFilter.available(budget: budget)
+    }
+
     private var meals: [PresetMeal] {
-        Menu.presets.filter { meal in
+        let active = filters.filter { availableFilters.contains($0) }
+        return Menu.presets.filter { meal in
             if let type = segment.mealType, meal.mealType != type { return false }
-            return filters.allSatisfy { $0.matches(meal) }
+            return active.allSatisfy { $0.matches(meal, budget: budget) }
         }
     }
 
@@ -69,7 +78,7 @@ struct OrderView: View {
                 )
 
                 VStack(alignment: .leading, spacing: 16) {
-                    FilterChips(selected: $filters)
+                    FilterChips(available: availableFilters, selected: $filters)
 
                     VStack(spacing: 12) {
                         buildYourOwnCard
@@ -149,6 +158,19 @@ struct OrderView: View {
         .buttonStyle(.plain)
     }
 
+    /// "805 cal · 59g protein", plus "· On target" in veg green or the miss
+    /// in cardinal when a goal is set.
+    private func macroText(_ nutrition: (calories: Int, protein: Int)) -> Text {
+        let base = Text("\(nutrition.calories) cal · \(nutrition.protein)g protein")
+        guard let goal = store.prefs.goal else { return base }
+        let status = Pricing.goalStatus(goal, macros: nutrition)
+        return base + Text(" · ") + Text(status.message).foregroundStyle(status.onTarget ? Color.veg : Color.cardinal)
+    }
+
+    private func allergenCaption(_ meal: PresetMeal) -> String? {
+        Allergies.caption(forIngredientIds: meal.ingredientIds, allergies: store.prefs.allergies)
+    }
+
     private func presetRow(_ meal: PresetMeal) -> some View {
         let selection = Selection(mealType: meal.mealType, ingredientIds: meal.ingredientIds, quantity: 1, presetId: meal.id)
         let nutrition = Pricing.macros(selection)
@@ -180,10 +202,15 @@ struct OrderView: View {
                         .foregroundStyle(Color.inkSoft)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
-                    Text("\(nutrition.calories) cal · \(nutrition.protein)g protein")
+                    macroText(nutrition)
                         .font(.body(13, weight: .semibold))
                         .foregroundStyle(Color.inkSoft)
                         .padding(.top, 4)
+                    if let caption = allergenCaption(meal) {
+                        Text(caption)
+                            .font(.body(13, weight: .semibold))
+                            .foregroundStyle(Color.cardinal)
+                    }
                 }
                 .padding(.vertical, 4)
             }

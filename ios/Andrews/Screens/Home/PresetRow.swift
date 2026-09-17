@@ -34,6 +34,7 @@ struct PresetRow: View {
                             .font(.display(19))
                             .foregroundStyle(Color.ink)
                             .multilineTextAlignment(.leading)
+                            .lineLimit(2, reservesSpace: true)
                         Spacer(minLength: 0)
                         Text(Pricing.money(Pricing.itemPrice(selection)))
                             .font(.body(15, weight: .semibold))

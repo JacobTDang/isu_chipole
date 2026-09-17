@@ -219,7 +219,7 @@ enum Goal: String, Codable, CaseIterable, Hashable {
         case .muscle:
             return "About 700 cal and 45g+ protein per meal"
         case .lose:
-            return "Up to 500 cal and 35g+ protein per meal"
+            return "At most 500 cal and 35g+ protein per meal"
         case .maintain:
             return "About 600 cal and 30g+ protein per meal"
         }

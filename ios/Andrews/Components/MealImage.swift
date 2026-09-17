@@ -34,7 +34,6 @@ struct MealImage: View {
     }
 
     private var assetName: String {
-        let filename = name.components(separatedBy: "/").last ?? name
-        return filename.components(separatedBy: ".").first ?? filename
+        Menu.assetName(name)
     }
 }

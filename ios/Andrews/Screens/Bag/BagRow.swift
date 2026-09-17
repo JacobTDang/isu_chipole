@@ -22,7 +22,7 @@ struct BagRow: View {
     }
 
     private var image: String {
-        preset?.image ?? type.image
+        Menu.image(for: item.selection)
     }
 
     private var summary: String {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { preset } from "../data/menu";
 import type { BagItem, Selection } from "../data/types";
-import { bagSubtotal, itemPrice, macros, mealCount, orderTotals, planDiscountRate, promoRate } from "./pricing";
+import { DELIVERY_FEE, bagSubtotal, itemPrice, macros, mealCount, orderTotals, planDiscountRate, promoRate } from "./pricing";
 
 const bowl: Selection = { mealType: "bowl", ingredientIds: ["cilantro-lime-rice", "grilled-chicken"], quantity: 1 };
 
@@ -26,7 +26,12 @@ describe("pricing", () => {
   });
   it("calculates order totals", () => {
     const items: BagItem[] = [{ ...bowl, id: "ten", quantity: 10 }];
-    expect(orderTotals(items, 10, "CYCLONE10")).toEqual({ subtotal: 85, discount: 17, tax: 4.76, total: 72.76 });
+    expect(orderTotals(items, 10, "CYCLONE10")).toEqual({ subtotal: 85, discount: 17, tax: 4.76, delivery: 0, total: 72.76 });
+  });
+  it("adds the untaxed delivery fee to the total", () => {
+    const items: BagItem[] = [{ ...bowl, id: "ten", quantity: 10 }];
+    expect(DELIVERY_FEE).toBe(2.99);
+    expect(orderTotals(items, 10, "CYCLONE10", DELIVERY_FEE)).toEqual({ subtotal: 85, discount: 17, tax: 4.76, delivery: 2.99, total: 75.75 });
   });
   it("returns money with at most two decimal places", () => {
     const values = Object.values(orderTotals([{ ...bowl, id: "three", quantity: 3 }], 5));

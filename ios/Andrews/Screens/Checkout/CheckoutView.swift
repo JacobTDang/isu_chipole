@@ -7,12 +7,18 @@ struct CheckoutView: View {
     @State private var fulfillment: Fulfillment = .pickup
     @State private var address = ""
     @State private var location = Menu.locations[0]
-    @State private var day: PickupDay = .sunday
-    @State private var time = "4:30 PM"
+    @State private var date: String
+    @State private var time: String
     @State private var locationOpen = false
     @State private var timeOpen = false
     @State private var isPlacing = false
     @State private var placedOrder: Order?
+
+    init() {
+        let initial = Schedule.defaultSchedule(now: Date())
+        _date = State(initialValue: initial.date)
+        _time = State(initialValue: initial.time)
+    }
 
     var body: some View {
         Group {
@@ -98,19 +104,8 @@ struct CheckoutView: View {
                     .listRowBackground(Color.card)
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("\(fulfillmentLabel) day")
-                        .font(.body(15))
-                        .foregroundStyle(Color.inkSoft)
-                        .padding(.horizontal, 16)
-                    ScrollingSegments(
-                        options: PickupDay.allCases.map { (id: $0, label: $0.rawValue) },
-                        selection: $day
-                    )
-                }
-                .padding(.vertical, 12)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.card)
+                detailRow(label: "\(fulfillmentLabel) date", value: Schedule.formatDate(date))
+                    .listRowBackground(Color.card)
 
                 Button {
                     timeOpen = true
@@ -240,7 +235,7 @@ struct CheckoutView: View {
             fulfillment: fulfillment,
             address: isDelivery ? cleanAddress : nil,
             location: location,
-            day: day,
+            date: date,
             time: time
         )
     }

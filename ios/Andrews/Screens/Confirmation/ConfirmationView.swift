@@ -56,7 +56,7 @@ struct ConfirmationView: View {
                     .foregroundStyle(Color.cardinal)
                     .padding(.top, 20)
 
-                Text("See you \(order.day.rawValue).")
+                Text("See you \(Schedule.weekdayName(order.date)).")
                     .font(.display(34))
                     .foregroundStyle(Color.ink)
                     .multilineTextAlignment(.center)
@@ -110,7 +110,7 @@ struct ConfirmationView: View {
         case .delivery:
             lines.append(TicketLine(label: "Deliver to", amount: order.address ?? ""))
         }
-        lines.append(TicketLine(label: "Day", amount: order.day.rawValue))
+        lines.append(TicketLine(label: "Date", amount: Schedule.formatDate(order.date)))
         lines.append(TicketLine(label: "Time", amount: order.time))
         for item in order.items {
             lines.append(TicketLine(

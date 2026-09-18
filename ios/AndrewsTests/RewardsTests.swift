@@ -44,7 +44,7 @@ struct RewardsTests {
             plan: .five,
             promo: nil,
             location: Menu.locations[0],
-            day: .sunday,
+            date: "2026-09-20",
             time: "4:30 PM",
             fulfillment: .pickup,
             address: nil,

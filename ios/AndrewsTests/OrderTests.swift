@@ -8,7 +8,7 @@ struct OrderTests {
         let json = Data("""
         {"id":"PP-0001","items":[],"plan":5,"promo":null,
          "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
-         "day":"Sunday","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,"placedAt":0}
+         "date":"2026-09-20","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,"placedAt":0}
         """.utf8)
 
         let order = try JSONDecoder().decode(Order.self, from: json)
@@ -27,7 +27,7 @@ struct OrderTests {
             plan: .five,
             promo: nil,
             location: Menu.locations[0],
-            day: .wednesday,
+            date: "2026-09-23",
             time: "5:00 PM",
             fulfillment: .delivery,
             address: "Friley Hall, room 2310",
@@ -46,14 +46,14 @@ struct OrderTests {
     }
 
     @Test
-    func roundTripsAnyDayOfTheWeek() throws {
+    func roundTripsTheCalendarDate() throws {
         let expected = Order(
             id: "PP-0003",
             items: [],
             plan: .five,
             promo: nil,
             location: Menu.locations[0],
-            day: .thursday,
+            date: "2026-09-24",
             time: "7:00 AM",
             fulfillment: .pickup,
             address: nil,
@@ -69,11 +69,44 @@ struct OrderTests {
         let actual = try JSONDecoder().decode(Order.self, from: data)
 
         #expect(actual == expected)
-        #expect(actual.day == .thursday)
+        #expect(actual.date == "2026-09-24")
+        #expect(String(decoding: data, as: UTF8.self).contains("\"date\":\"2026-09-24\""))
+    }
+
+    /// Orders stored before calendar dates carry a weekday; they load with the
+    /// first date on or after the day they were placed that falls on it.
+    @Test
+    func legacyDayMigratesToTheNextMatchingDate() throws {
+        let placedAt = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 18, hour: 10)))
+        let json = Data("""
+        {"id":"PP-0001","items":[],"plan":5,"promo":null,
+         "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
+         "day":"Sunday","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,
+         "placedAt":\(placedAt.timeIntervalSinceReferenceDate)}
+        """.utf8)
+
+        let order = try JSONDecoder().decode(Order.self, from: json)
+
+        #expect(order.date == "2026-09-20")
     }
 
     @Test
-    func unknownDayValueThrows() {
+    func legacyDayOnItsOwnWeekdayKeepsThePlacedDate() throws {
+        let placedAt = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 18, hour: 10)))
+        let json = Data("""
+        {"id":"PP-0001","items":[],"plan":5,"promo":null,
+         "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
+         "day":"Friday","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,
+         "placedAt":\(placedAt.timeIntervalSinceReferenceDate)}
+        """.utf8)
+
+        let order = try JSONDecoder().decode(Order.self, from: json)
+
+        #expect(order.date == "2026-09-18")
+    }
+
+    @Test
+    func unknownLegacyDayThrows() {
         let json = Data("""
         {"id":"PP-0001","items":[],"plan":5,"promo":null,
          "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
@@ -86,11 +119,39 @@ struct OrderTests {
     }
 
     @Test
+    func malformedDateThrows() {
+        for date in ["2026-02-30", "Thursday", "2026-9-4", ""] {
+            let json = Data("""
+            {"id":"PP-0001","items":[],"plan":5,"promo":null,
+             "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
+             "date":"\(date)","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,"placedAt":0}
+            """.utf8)
+
+            #expect(throws: DecodingError.self, "\(date)") {
+                try JSONDecoder().decode(Order.self, from: json)
+            }
+        }
+    }
+
+    @Test
+    func missingDateAndDayThrows() {
+        let json = Data("""
+        {"id":"PP-0001","items":[],"plan":5,"promo":null,
+         "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
+         "time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,"placedAt":0}
+        """.utf8)
+
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(Order.self, from: json)
+        }
+    }
+
+    @Test
     func wrongFulfillmentValueThrows() {
         let json = Data("""
         {"id":"PP-0001","items":[],"plan":5,"promo":null,
          "location":{"id":"memorial-union","name":"Memorial Union","note":"Main Lounge entrance"},
-         "day":"Sunday","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,"placedAt":0,
+         "date":"2026-09-20","time":"4:30 PM","subtotal":10,"discount":0,"tax":0.7,"total":10.7,"placedAt":0,
          "fulfillment":"drone"}
         """.utf8)
 
@@ -121,11 +182,12 @@ struct PlaceOrderTests {
             fulfillment: .delivery,
             address: "Friley Hall, room 2310",
             location: Menu.locations[0],
-            day: .sunday,
+            date: "2026-09-20",
             time: "4:30 PM"
         )
 
         #expect(order.fulfillment == .delivery)
+        #expect(order.date == "2026-09-20")
         #expect(order.address == "Friley Hall, room 2310")
         #expect(order.deliveryFee == Decimal(string: "2.99"))
         #expect(order.total == Decimal(string: "12.09"))
@@ -140,7 +202,7 @@ struct PlaceOrderTests {
             fulfillment: .pickup,
             address: nil,
             location: Menu.locations[1],
-            day: .wednesday,
+            date: "2026-09-23",
             time: "5:00 PM"
         )
 

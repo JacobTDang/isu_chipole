@@ -128,9 +128,12 @@ final class AppStore {
         fulfillment: Fulfillment,
         address: String?,
         location: PickupLocation,
-        day: PickupDay,
+        date: String,
         time: String
     ) -> Order {
+        guard Schedule.parse(date) != nil else {
+            preconditionFailure("Orders need a YYYY-MM-DD date, got \(date)")
+        }
         let cleanAddress = address?.trimmingCharacters(in: .whitespacesAndNewlines)
         let deliveryFee: Decimal
         switch fulfillment {
@@ -149,7 +152,7 @@ final class AppStore {
             plan: plan,
             promo: promo,
             location: location,
-            day: day,
+            date: date,
             time: time,
             fulfillment: fulfillment,
             address: fulfillment == .delivery ? cleanAddress : nil,

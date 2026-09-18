@@ -117,16 +117,6 @@ struct PickupLocation: Codable, Identifiable, Hashable {
     let note: String
 }
 
-enum PickupDay: String, Codable, CaseIterable, Hashable {
-    case sunday = "Sunday"
-    case monday = "Monday"
-    case tuesday = "Tuesday"
-    case wednesday = "Wednesday"
-    case thursday = "Thursday"
-    case friday = "Friday"
-    case saturday = "Saturday"
-}
-
 enum Fulfillment: String, Codable, Hashable {
     case pickup
     case delivery
@@ -139,7 +129,8 @@ struct Order: Codable, Identifiable, Hashable {
     let promo: String?
     /// For delivery this holds the default location and is not shown.
     let location: PickupLocation
-    let day: PickupDay
+    /// ISO calendar date "YYYY-MM-DD" in the device's local time zone.
+    let date: String
     let time: String
     let fulfillment: Fulfillment
     let address: String?
@@ -152,8 +143,14 @@ struct Order: Codable, Identifiable, Hashable {
 }
 
 extension Order {
+    private enum LegacyKeys: String, CodingKey {
+        case day
+    }
+
     /// Orders stored before delivery existed lack the fulfillment keys and
-    /// load as pickup with no fee.
+    /// load as pickup with no fee. Orders stored before calendar dates carry
+    /// a weekday instead of a date; they load with the first date on or after
+    /// the day they were placed that falls on that weekday.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
@@ -161,7 +158,6 @@ extension Order {
         plan = try container.decode(PlanSize.self, forKey: .plan)
         promo = try container.decodeIfPresent(String.self, forKey: .promo)
         location = try container.decode(PickupLocation.self, forKey: .location)
-        day = try container.decode(PickupDay.self, forKey: .day)
         time = try container.decode(String.self, forKey: .time)
         fulfillment = try container.decodeIfPresent(Fulfillment.self, forKey: .fulfillment) ?? .pickup
         address = try container.decodeIfPresent(String.self, forKey: .address)
@@ -171,6 +167,32 @@ extension Order {
         tax = try container.decode(Decimal.self, forKey: .tax)
         total = try container.decode(Decimal.self, forKey: .total)
         placedAt = try container.decode(Date.self, forKey: .placedAt)
+
+        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+        if let stored = try container.decodeIfPresent(String.self, forKey: .date) {
+            guard Schedule.parse(stored) != nil else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .date,
+                    in: container,
+                    debugDescription: "\(stored) is not a YYYY-MM-DD calendar date"
+                )
+            }
+            date = stored
+        } else if let day = try legacy.decodeIfPresent(String.self, forKey: .day) {
+            guard Schedule.weekdayNames.contains(day) else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .day,
+                    in: legacy,
+                    debugDescription: "\(day) is not a weekday"
+                )
+            }
+            date = Schedule.nextDateForWeekday(from: Schedule.todayISO(now: placedAt), weekday: day)
+        } else {
+            throw DecodingError.keyNotFound(
+                CodingKeys.date,
+                DecodingError.Context(codingPath: container.codingPath, debugDescription: "Order has neither date nor day")
+            )
+        }
     }
 }
 

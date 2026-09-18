@@ -20,15 +20,6 @@ struct MenuTests {
     }
 
     @Test
-    func pickupDaysCoverTheWholeWeekStartingSunday() {
-        #expect(PickupDay.allCases.count == 7)
-        #expect(PickupDay.allCases.first == .sunday)
-        #expect(PickupDay.allCases.map(\.rawValue) == [
-            "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
-        ])
-    }
-
-    @Test
     func everyPresetIngredientResolves() {
         for preset in Menu.presets {
             for id in preset.ingredientIds {

@@ -11,7 +11,7 @@ struct OrderIdTests {
         defaults.removePersistentDomain(forName: suiteName)
         let store = AppStore(storage: Storage(defaults: defaults))
 
-        let order = store.placeOrder(fulfillment: .pickup, address: nil, location: Menu.locations[0], day: .sunday, time: "4:30 PM")
+        let order = store.placeOrder(fulfillment: .pickup, address: nil, location: Menu.locations[0], date: "2026-09-20", time: "4:30 PM")
 
         #expect(order.id.wholeMatch(of: /PP-\d{4}/) != nil)
     }

@@ -1,4 +1,5 @@
-import type { BagItem, Fulfillment, MealTypeId, Order, PickupLocation, PlanSize, Selection, User } from "../data/types";
+import { PICKUP_DAYS } from "../data/locations";
+import type { BagItem, Fulfillment, MealTypeId, Order, PickupDay, PickupLocation, PlanSize, Selection, User } from "../data/types";
 
 export const KEYS = {
   user: "preppal.user",
@@ -47,13 +48,14 @@ const isLocation = (value: unknown): value is PickupLocation => isObject(value) 
 const isUser = (value: unknown): value is User => isObject(value) && isString(value.email) && isString(value.firstName);
 
 const isFulfillment = (value: unknown): value is Fulfillment => value === "pickup" || value === "delivery";
+const isPickupDay = (value: unknown): value is PickupDay => PICKUP_DAYS.includes(value as PickupDay);
 
 function isOrder(value: unknown): value is Order {
   return isObject(value) && isString(value.id) && Array.isArray(value.items) && value.items.every(isBagItem)
     && isPlan(value.plan) && (value.promo === undefined || isString(value.promo)) && isLocation(value.location)
     && isFulfillment(value.fulfillment) && isNumber(value.deliveryFee)
     && (value.fulfillment === "delivery" ? isString(value.address) && value.address.length > 0 : value.address === null)
-    && (value.day === "Sunday" || value.day === "Wednesday") && isString(value.time)
+    && isPickupDay(value.day) && isString(value.time)
     && isNumber(value.subtotal) && isNumber(value.discount) && isNumber(value.tax) && isNumber(value.total)
     && isString(value.placedAt);
 }

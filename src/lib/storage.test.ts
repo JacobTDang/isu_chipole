@@ -52,6 +52,20 @@ describe("storage", () => {
     expect(() => readOrders()).toThrow(/preppal\.orders/);
   });
 
+  it("accepts an order on any day of the week", () => {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+    const orders: Order[] = days.map((day, index) => ({
+      ...legacyOrder, id: `PP-000${index}`, day, fulfillment: "pickup", address: null, deliveryFee: 0,
+    }));
+    writeOrders(orders);
+    expect(readOrders()).toEqual(orders);
+  });
+
+  it("throws when an order has an unknown day", () => {
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...legacyOrder, day: "Someday" }]));
+    expect(() => readOrders()).toThrow(/preppal\.orders/);
+  });
+
   it("clears every PrepPal key", () => {
     for (const key of Object.values(KEYS)) window.localStorage.setItem(key, "anything");
     clearAll();

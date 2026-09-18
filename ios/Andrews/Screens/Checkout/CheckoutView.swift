@@ -10,6 +10,7 @@ struct CheckoutView: View {
     @State private var date: String
     @State private var time: String
     @State private var locationOpen = false
+    @State private var dateOpen = false
     @State private var timeOpen = false
     @State private var isPlacing = false
     @State private var placedOrder: Order?
@@ -42,9 +43,27 @@ struct CheckoutView: View {
         .sheet(isPresented: $locationOpen) {
             LocationSheet(selection: $location)
         }
-        .sheet(isPresented: $timeOpen) {
-            TimeSheet(title: "\(fulfillmentLabel) time", selection: $time)
+        .sheet(isPresented: $dateOpen) {
+            DateSheet(title: "\(fulfillmentLabel) date", selection: $date)
         }
+        .sheet(isPresented: $timeOpen) {
+            TimeSheet(title: "\(fulfillmentLabel) time", slots: availableSlots, selection: $time)
+        }
+        .onChange(of: date) {
+            keepTimeAvailable()
+        }
+    }
+
+    private var availableSlots: [String] {
+        Schedule.availableSlots(dateISO: date, now: Date())
+    }
+
+    /// A slot chosen for one date may already have passed on another; fall
+    /// back to the first slot that is still open.
+    private func keepTimeAvailable() {
+        let slots = availableSlots
+        guard !slots.contains(time), let first = slots.first else { return }
+        time = first
     }
 
     private var emptyState: some View {
@@ -104,8 +123,12 @@ struct CheckoutView: View {
                     .listRowBackground(Color.card)
                 }
 
-                detailRow(label: "\(fulfillmentLabel) date", value: Schedule.formatDate(date))
-                    .listRowBackground(Color.card)
+                Button {
+                    dateOpen = true
+                } label: {
+                    detailRow(label: "\(fulfillmentLabel) date", value: Schedule.formatDate(date))
+                }
+                .listRowBackground(Color.card)
 
                 Button {
                     timeOpen = true

@@ -2,17 +2,19 @@ import SwiftUI
 
 struct TimeSheet: View {
     let title: String
+    let slots: [String]
     @Binding var selection: String
     @Environment(\.dismiss) private var dismiss
 
-    init(title: String = "Pickup time", selection: Binding<String>) {
+    init(title: String = "Pickup time", slots: [String], selection: Binding<String>) {
         self.title = title
+        self.slots = slots
         _selection = selection
     }
 
     var body: some View {
         NavigationStack {
-            List(Menu.timeSlots, id: \.self) { slot in
+            List(slots, id: \.self) { slot in
                 Button {
                     selection = slot
                     dismiss()

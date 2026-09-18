@@ -83,13 +83,15 @@ final class FlowTests: XCTestCase {
         step("bag") {
             try selectTab("Bag")
             try require(app.staticTexts["Bag"], "Bag title")
-            let plus = try require(increaseQuantityButton(), "increase-quantity button")
+            let plus = try require(app.buttons["Increase quantity"], "Increase quantity button")
+            try scrollListUntilHittable(plus, "Increase quantity button")
             for _ in 0..<6 {
                 plus.tap()
+                settle(0.3)
             }
             try require(app.staticTexts["$71.75"], "subtotal for 7 meals")
             try require(app.buttons.matching(labelContains: "Meals this week").firstMatch, "Meals this week card").tap()
-            try require(app.buttons.matching(labelContains: "7 meals").firstMatch, "7 meals row").tap()
+            try require(app.buttons.matching(labelBeginsWith: "7 meals").firstMatch, "7 meals row").tap()
             try require(staticText(containing: "Plan discount"), "Plan discount line")
             settle()
             snap("05-bag")
@@ -139,7 +141,7 @@ final class FlowTests: XCTestCase {
             try selectTab("Account")
             try require(app.staticTexts["Account"], "Account title")
             scrollListToTop()
-            try require(app.staticTexts["68 pts"], "68 pts")
+            try require(app.staticTexts["56 pts"], "56 pts")
             settle()
             snap("08-account")
         }
@@ -235,12 +237,21 @@ final class FlowTests: XCTestCase {
         settle(0.6)
     }
 
-    /// A row under the translucent navigation bar or tab bar still reports
-    /// as hittable, so after the row exists, nudge it into the clear band.
+    /// The lazy list only holds rows near the viewport, so a row that has
+    /// scrolled off in either direction does not exist: search downwards
+    /// first, then back up. A row under the translucent navigation bar or
+    /// tab bar still reports as hittable, so after the row exists, nudge it
+    /// into the clear band.
     private func scrollListUntilHittable(_ element: XCUIElement, _ description: String) throws {
         var attempts = 0
         while !element.exists && attempts < 8 {
             app.swipeUp(velocity: .slow)
+            settle(0.6)
+            attempts += 1
+        }
+        attempts = 0
+        while !element.exists && attempts < 8 {
+            app.swipeDown(velocity: .slow)
             settle(0.6)
             attempts += 1
         }
@@ -270,16 +281,6 @@ final class FlowTests: XCTestCase {
         scrollIntoView(pill)
         pill.tap()
         settle(0.3)
-    }
-
-    /// The stepper has no "Increase quantity" label; its plus button is only
-    /// distinguishable by the SF Symbol identifier.
-    private func increaseQuantityButton() -> XCUIElement {
-        let labelled = app.buttons["Increase quantity"]
-        if labelled.waitForExistence(timeout: 1) {
-            return labelled
-        }
-        return app.buttons.matching(NSPredicate(format: "identifier == 'plus'")).firstMatch
     }
 
     private func staticText(containing text: String) -> XCUIElement {

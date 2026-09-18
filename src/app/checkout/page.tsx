@@ -11,8 +11,8 @@ import { Ticket } from "../../components/Ticket";
 import { LocationSheet } from "../../components/checkout/LocationSheet";
 import { PromoField } from "../../components/checkout/PromoField";
 import { TimeSheet } from "../../components/checkout/TimeSheet";
-import { LOCATIONS, PICKUP_DAYS, TIME_SLOTS } from "../../data/locations";
-import type { Fulfillment, PickupDay, PickupLocation } from "../../data/types";
+import { LOCATIONS, TIME_SLOTS } from "../../data/locations";
+import type { Fulfillment, PickupLocation } from "../../data/types";
 import {
   DELIVERY_FEE,
   mealCount,
@@ -20,6 +20,7 @@ import {
   planDiscountRate,
   promoRate,
 } from "../../lib/pricing";
+import { defaultSchedule, formatDate } from "../../lib/schedule";
 import { useBag } from "../../state/BagProvider";
 import { useOrders } from "../../state/OrdersProvider";
 
@@ -42,8 +43,9 @@ export default function CheckoutPage() {
   const [fulfillment, setFulfillment] = useState<Fulfillment>("pickup");
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState<PickupLocation>(LOCATIONS[0]);
-  const [day, setDay] = useState<PickupDay>("Sunday");
-  const [time, setTime] = useState("4:30 PM");
+  const [schedule, setSchedule] = useState(() => defaultSchedule(new Date()));
+  const { date, time } = schedule;
+  const setTime = (next: string) => setSchedule({ date, time: next });
   const [payment, setPayment] = useState<Payment>("Visa ending 4242");
   const [locationOpen, setLocationOpen] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
@@ -84,7 +86,7 @@ export default function CheckoutPage() {
       address: delivery ? cleanAddress : null,
       deliveryFee,
       location,
-      day,
+      date,
       time,
       subtotal,
       discount,
@@ -144,28 +146,7 @@ export default function CheckoutPage() {
               onClick={() => setLocationOpen(true)}
             />
           )}
-          <fieldset className="min-w-0 py-3">
-            <legend className="mb-2 px-4 text-[15px] text-ink-soft">{delivery ? "Delivery day" : "Pickup day"}</legend>
-            <div role="radiogroup" className="flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
-              {PICKUP_DAYS.map((pickupDay) => {
-                const selected = pickupDay === day;
-                return (
-                  <button
-                    key={pickupDay}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setDay(pickupDay)}
-                    className={`min-h-11 shrink-0 rounded-full border px-4 text-[15px] font-semibold transition-colors ${
-                      selected ? "border-cardinal bg-gold text-ink" : "border-line bg-card text-ink"
-                    }`}
-                  >
-                    {pickupDay}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+          <GroupedRow label={delivery ? "Delivery date" : "Pickup date"} value={formatDate(date)} />
           <GroupedRow
             label={delivery ? "Delivery time" : "Pickup time"}
             value={time}

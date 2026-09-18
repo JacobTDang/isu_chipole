@@ -1,5 +1,5 @@
-import { PICKUP_DAYS } from "../data/locations";
-import type { BagItem, Fulfillment, MealTypeId, Order, PickupDay, PickupLocation, PlanSize, Selection, User } from "../data/types";
+import type { BagItem, Fulfillment, MealTypeId, Order, PickupLocation, PlanSize, Selection, User } from "../data/types";
+import { isISODate, nextDateForWeekday, todayISO } from "./schedule";
 
 export const KEYS = {
   user: "preppal.user",
@@ -48,21 +48,33 @@ const isLocation = (value: unknown): value is PickupLocation => isObject(value) 
 const isUser = (value: unknown): value is User => isObject(value) && isString(value.email) && isString(value.firstName);
 
 const isFulfillment = (value: unknown): value is Fulfillment => value === "pickup" || value === "delivery";
-const isPickupDay = (value: unknown): value is PickupDay => PICKUP_DAYS.includes(value as PickupDay);
 
 function isOrder(value: unknown): value is Order {
   return isObject(value) && isString(value.id) && Array.isArray(value.items) && value.items.every(isBagItem)
     && isPlan(value.plan) && (value.promo === undefined || isString(value.promo)) && isLocation(value.location)
     && isFulfillment(value.fulfillment) && isNumber(value.deliveryFee)
     && (value.fulfillment === "delivery" ? isString(value.address) && value.address.length > 0 : value.address === null)
-    && isPickupDay(value.day) && isString(value.time)
+    && isISODate(value.date) && isString(value.time)
     && isNumber(value.subtotal) && isNumber(value.discount) && isNumber(value.tax) && isNumber(value.total)
     && isString(value.placedAt);
 }
 
-function migrateOrder(value: unknown): unknown {
-  if (!isObject(value) || value.fulfillment !== undefined || value.address !== undefined || value.deliveryFee !== undefined) return value;
+function migrateFulfillment(value: RecordValue): RecordValue {
+  if (value.fulfillment !== undefined || value.address !== undefined || value.deliveryFee !== undefined) return value;
   return { ...value, fulfillment: "pickup", address: null, deliveryFee: 0 };
+}
+
+function migrateDay(value: RecordValue): RecordValue {
+  if (value.date !== undefined || !isString(value.day) || !isString(value.placedAt)) return value;
+  const placed = new Date(value.placedAt);
+  if (Number.isNaN(placed.getTime())) return value;
+  const { day, ...rest } = value;
+  return { ...rest, date: nextDateForWeekday(todayISO(placed), day) };
+}
+
+function migrateOrder(value: unknown): unknown {
+  if (!isObject(value)) return value;
+  return migrateDay(migrateFulfillment(value));
 }
 
 function invalid(key: string, reason: string): never {

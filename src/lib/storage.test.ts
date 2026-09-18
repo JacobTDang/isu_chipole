@@ -5,10 +5,11 @@ import { clearAll, KEYS, readBagState, readOrders, writeBagState, writeOrders } 
 
 const item: BagItem = { id: "item-1", mealType: "bowl", ingredientIds: ["white-rice", "tofu"], quantity: 1 };
 const location = { id: "memorial-union", name: "Memorial Union", note: "Main Lounge entrance" };
-const legacyOrder = {
-  id: "PP-0001", items: [item], plan: 5 as const, location, day: "Sunday" as const, time: "4:30 PM",
-  subtotal: 7.5, discount: 0, tax: 0.53, total: 8.03, placedAt: "2026-09-01T00:00:00.000Z",
+const undated = {
+  id: "PP-0001", items: [item], plan: 5 as const, location, time: "4:30 PM",
+  subtotal: 7.5, discount: 0, tax: 0.53, total: 8.03, placedAt: "2026-09-01T12:00:00.000Z",
 };
+const legacyOrder = { ...undated, date: "2026-09-06" };
 
 describe("storage", () => {
   beforeEach(() => {
@@ -52,17 +53,26 @@ describe("storage", () => {
     expect(() => readOrders()).toThrow(/preppal\.orders/);
   });
 
-  it("accepts an order on any day of the week", () => {
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
-    const orders: Order[] = days.map((day, index) => ({
-      ...legacyOrder, id: `PP-000${index}`, day, fulfillment: "pickup", address: null, deliveryFee: 0,
-    }));
-    writeOrders(orders);
-    expect(readOrders()).toEqual(orders);
+  it("accepts an order with a calendar date", () => {
+    const order: Order = { ...legacyOrder, date: "2026-09-24", fulfillment: "pickup", address: null, deliveryFee: 0 };
+    writeOrders([order]);
+    expect(readOrders()).toEqual([order]);
   });
 
-  it("throws when an order has an unknown day", () => {
-    window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...legacyOrder, day: "Someday" }]));
+  it("migrates a legacy weekday to the first matching date on or after it was placed", () => {
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...undated, day: "Sunday" }]));
+    expect(readOrders()).toEqual([{ ...legacyOrder, date: "2026-09-06", fulfillment: "pickup", address: null, deliveryFee: 0 }]);
+  });
+
+  it("throws when an order has a malformed date", () => {
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...legacyOrder, date: "2026-02-30" }]));
+    expect(() => readOrders()).toThrow(/preppal\.orders/);
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([{ ...legacyOrder, date: "Thursday" }]));
+    expect(() => readOrders()).toThrow(/preppal\.orders/);
+  });
+
+  it("throws when an order has neither a date nor a day", () => {
+    window.localStorage.setItem(KEYS.orders, JSON.stringify([undated]));
     expect(() => readOrders()).toThrow(/preppal\.orders/);
   });
 

@@ -46,7 +46,6 @@ export type PlanSize = 5 | 7 | 10;
 export type PickupLocation = { id: string; name: string; note: string };
 export type User = { email: string; firstName: string };
 export type Fulfillment = "pickup" | "delivery";
-export type PickupDay = "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
 
 export type Order = {
   id: string;
@@ -57,7 +56,7 @@ export type Order = {
   address: string | null;
   deliveryFee: number;
   location: PickupLocation;
-  day: PickupDay;
+  date: string;
   time: string;
   subtotal: number;
   discount: number;

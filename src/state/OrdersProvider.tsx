@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Order, Selection } from "../data/types";
 import { newOrderId } from "../lib/ids";
+import { isISODate } from "../lib/schedule";
 import { readOrders, readSaved, writeOrders, writeSaved } from "../lib/storage";
 
 type OrdersValue = {
@@ -26,6 +27,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     place(input) {
       if (input.fulfillment === "delivery" && !input.address?.trim()) throw new Error("Delivery orders need an address");
       if (input.fulfillment === "pickup" && (input.address !== null || input.deliveryFee !== 0)) throw new Error("Pickup orders have no address or delivery fee");
+      if (!isISODate(input.date)) throw new Error(`Orders need a calendar date, got ${input.date}`);
       const order: Order = { ...input, id: newOrderId(), placedAt: new Date().toISOString() };
       const next = [...orders, order];
       writeOrders(next);

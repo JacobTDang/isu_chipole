@@ -4,9 +4,11 @@ import {
   availableSlots,
   defaultSchedule,
   formatDate,
+  formatMonth,
   isISODate,
   monthGrid,
   nextDateForWeekday,
+  shiftMonth,
   todayISO,
   weekdayName,
 } from "./schedule";
@@ -116,6 +118,23 @@ describe("nextDateForWeekday", () => {
 
   it("throws on an unknown weekday", () => {
     expect(() => nextDateForWeekday("2026-09-18", "Someday")).toThrow(/Someday/);
+  });
+});
+
+describe("formatMonth and shiftMonth", () => {
+  it("names the month and year", () => {
+    expect(formatMonth("2026-09")).toBe("September 2026");
+  });
+
+  it("shifts across year boundaries", () => {
+    expect(shiftMonth("2026-09", 1)).toBe("2026-10");
+    expect(shiftMonth("2026-12", 1)).toBe("2027-01");
+    expect(shiftMonth("2027-01", -1)).toBe("2026-12");
+  });
+
+  it("throws on a malformed month", () => {
+    expect(() => formatMonth("2026-13")).toThrow(/2026-13/);
+    expect(() => shiftMonth("2026/09", 1)).toThrow(/2026\/09/);
   });
 });
 

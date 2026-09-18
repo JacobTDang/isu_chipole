@@ -8,10 +8,11 @@ import { InlineNav } from "../../components/InlineNav";
 import { RequireAuth } from "../../components/RequireAuth";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { Ticket } from "../../components/Ticket";
+import { DateSheet } from "../../components/checkout/DateSheet";
 import { LocationSheet } from "../../components/checkout/LocationSheet";
 import { PromoField } from "../../components/checkout/PromoField";
 import { TimeSheet } from "../../components/checkout/TimeSheet";
-import { LOCATIONS, TIME_SLOTS } from "../../data/locations";
+import { LOCATIONS } from "../../data/locations";
 import type { Fulfillment, PickupLocation } from "../../data/types";
 import {
   DELIVERY_FEE,
@@ -20,7 +21,7 @@ import {
   planDiscountRate,
   promoRate,
 } from "../../lib/pricing";
-import { defaultSchedule, formatDate } from "../../lib/schedule";
+import { availableSlots, defaultSchedule, formatDate } from "../../lib/schedule";
 import { useBag } from "../../state/BagProvider";
 import { useOrders } from "../../state/OrdersProvider";
 
@@ -43,18 +44,20 @@ export default function CheckoutPage() {
   const [fulfillment, setFulfillment] = useState<Fulfillment>("pickup");
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState<PickupLocation>(LOCATIONS[0]);
-  const [schedule, setSchedule] = useState(() => defaultSchedule(new Date()));
+  const [now, setNow] = useState(() => new Date());
+  const [schedule, setSchedule] = useState(() => defaultSchedule(now));
   const { date, time } = schedule;
-  const setTime = (next: string) => setSchedule({ date, time: next });
+  const slots = availableSlots(date, now);
   const [payment, setPayment] = useState<Payment>("Visa ending 4242");
   const [locationOpen, setLocationOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
   const [isPlacing, setIsPlacing] = useState(false);
   const placingOrder = useRef(false);
   const delivery = fulfillment === "delivery";
   const deliveryFee = delivery ? DELIVERY_FEE : 0;
   const cleanAddress = address.trim();
-  const canPlace = !isPlacing && (!delivery || cleanAddress.length > 0);
+  const canPlace = !isPlacing && slots.includes(time) && (!delivery || cleanAddress.length > 0);
   const totals = orderTotals(items, plan, promo, deliveryFee);
   const planRate = planDiscountRate(plan, mealCount(items));
   const currentPromoRate = promoRate(promo);
@@ -73,8 +76,25 @@ export default function CheckoutPage() {
     return <RequireAuth><InlineNav title="Checkout" backHref="/bag" /></RequireAuth>;
   }
 
+  function reschedule(nextDate: string, current: Date) {
+    const nextSlots = availableSlots(nextDate, current);
+    if (nextSlots.length === 0) {
+      setSchedule(defaultSchedule(current));
+      return;
+    }
+    setSchedule({ date: nextDate, time: nextSlots.includes(time) ? time : nextSlots[0] });
+  }
+
+  function openSheet(open: (value: boolean) => void) {
+    const current = new Date();
+    setNow(current);
+    reschedule(date, current);
+    open(true);
+  }
+
   function placeOrder() {
     if (placingOrder.current || !canPlace) return;
+    if (!slots.includes(time)) throw new Error(`${time} is not available on ${date}`);
     placingOrder.current = true;
     setIsPlacing(true);
     const { subtotal, discount, tax, total } = totals;
@@ -146,12 +166,17 @@ export default function CheckoutPage() {
               onClick={() => setLocationOpen(true)}
             />
           )}
-          <GroupedRow label={delivery ? "Delivery date" : "Pickup date"} value={formatDate(date)} />
+          <GroupedRow
+            label={delivery ? "Delivery date" : "Pickup date"}
+            value={formatDate(date)}
+            chevron
+            onClick={() => openSheet(setDateOpen)}
+          />
           <GroupedRow
             label={delivery ? "Delivery time" : "Pickup time"}
             value={time}
             chevron
-            onClick={() => setTimeOpen(true)}
+            onClick={() => openSheet(setTimeOpen)}
           />
           <GroupedRow
             label="Payment"
@@ -197,12 +222,20 @@ export default function CheckoutPage() {
         onChange={setLocation}
         onClose={() => setLocationOpen(false)}
       />
+      <DateSheet
+        open={dateOpen}
+        title={delivery ? "Delivery date" : "Pickup date"}
+        value={date}
+        now={now}
+        onChange={(nextDate) => reschedule(nextDate, now)}
+        onClose={() => setDateOpen(false)}
+      />
       <TimeSheet
         open={timeOpen}
         title={delivery ? "Delivery time" : "Pickup time"}
-        slots={TIME_SLOTS}
+        slots={slots}
         value={time}
-        onChange={setTime}
+        onChange={(nextTime) => setSchedule({ date, time: nextTime })}
         onClose={() => setTimeOpen(false)}
       />
     </RequireAuth>

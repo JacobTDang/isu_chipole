@@ -3,7 +3,7 @@ import { TIME_SLOTS } from "../data/locations";
 export type Schedule = { date: string; time: string };
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const LEAD_MINUTES = 30;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const YEAR_MONTH = /^\d{4}-\d{2}$/;
@@ -42,7 +42,7 @@ export function todayISO(now: Date): string {
 
 export function formatDate(iso: string): string {
   const date = parseISO(iso);
-  return `${WEEKDAYS[date.getDay()].slice(0, 3)}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
+  return `${WEEKDAYS[date.getDay()].slice(0, 3)}, ${MONTHS[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
 }
 
 export function weekdayName(iso: string): string {
@@ -73,10 +73,26 @@ export function nextDateForWeekday(fromISO: string, weekday: string): string {
   return toISO(new Date(from.getFullYear(), from.getMonth(), from.getDate() + ahead));
 }
 
-export function monthGrid(yearMonth: string): Array<string | null> {
+function parseYearMonth(yearMonth: string): [number, number] {
   if (!YEAR_MONTH.test(yearMonth)) throw new Error(`schedule: ${yearMonth} is not a year and month`);
   const [year, month] = yearMonth.split("-").map(Number);
   if (month < 1 || month > 12) throw new Error(`schedule: ${yearMonth} is not a year and month`);
+  return [year, month];
+}
+
+export function formatMonth(yearMonth: string): string {
+  const [year, month] = parseYearMonth(yearMonth);
+  return `${MONTHS[month - 1]} ${year}`;
+}
+
+export function shiftMonth(yearMonth: string, by: number): string {
+  const [year, month] = parseYearMonth(yearMonth);
+  const shifted = new Date(year, month - 1 + by, 1);
+  return `${shifted.getFullYear()}-${pad(shifted.getMonth() + 1)}`;
+}
+
+export function monthGrid(yearMonth: string): Array<string | null> {
+  const [year, month] = parseYearMonth(yearMonth);
   const first = new Date(year, month - 1, 1);
   const days = new Date(year, month, 0).getDate();
   const grid: Array<string | null> = Array.from({ length: 42 }, () => null);

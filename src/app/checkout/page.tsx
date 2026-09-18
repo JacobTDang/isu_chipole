@@ -144,7 +144,7 @@ export default function CheckoutPage() {
               onClick={() => setLocationOpen(true)}
             />
           )}
-          <fieldset className="py-3">
+          <fieldset className="min-w-0 py-3">
             <legend className="mb-2 px-4 text-[15px] text-ink-soft">{delivery ? "Delivery day" : "Pickup day"}</legend>
             <div role="radiogroup" className="flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
               {PICKUP_DAYS.map((pickupDay) => {

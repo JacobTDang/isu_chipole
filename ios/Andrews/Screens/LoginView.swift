@@ -14,11 +14,12 @@ struct LoginView: View {
             Spacer(minLength: 24)
 
             VStack(spacing: 0) {
-                Image("ISULogo")
+                Image("PrepPalMark")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 240)
-                    .accessibilityLabel("Iowa State University")
+                    .frame(width: 96, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .accessibilityLabel("PrepPal")
 
                 Text("PrepPal")
                     .font(.display(34))

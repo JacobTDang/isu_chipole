@@ -117,6 +117,7 @@ final class FlowTests: XCTestCase {
             try require(staticText(containing: "Promo"), "Promo line")
             try require(app.staticTexts["Delivery"], "Delivery ticket line")
             try require(staticText(containing: "$56.73"), "total $56.73")
+            try scrollFormToTop(until: app.staticTexts["Delivery day"], "Delivery day label")
             settle()
             snap("06-checkout")
         }
@@ -223,6 +224,24 @@ final class FlowTests: XCTestCase {
         try scrollListUntilHittable(stepper, "budget stepper")
         try require(stepper.buttons["budget-stepper-Increment"], "budget stepper increment button").tap()
         settle(0.3)
+    }
+
+    /// The promo field leaves the form scrolled to its end with the keyboard
+    /// up. Dragging the right-edge gutter downwards dismisses the keyboard
+    /// and brings the fulfillment rows back under the navigation bar so the
+    /// checkout screenshot shows the day and time controls.
+    private func scrollFormToTop(until element: XCUIElement, _ description: String) throws {
+        var attempts = 0
+        while !(element.exists && element.isHittable && element.frame.minY >= 120) && attempts < 6 {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.18))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.9))
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.2)
+            settle(0.6)
+            attempts += 1
+        }
+        guard element.exists && element.isHittable && element.frame.minY >= 120 else {
+            throw MissingElement(description: "hittable \(description) after scrolling the form to the top")
+        }
     }
 
     /// The Account tab keeps its scroll position between visits, so the

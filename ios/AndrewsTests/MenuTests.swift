@@ -7,7 +7,25 @@ struct MenuTests {
         #expect(Menu.mealTypes.count == 5)
         #expect(Menu.presets.count == 8)
         #expect(Menu.locations.count == 4)
-        #expect(Menu.timeSlots.count == 7)
+        #expect(Menu.timeSlots.count == 27)
+    }
+
+    @Test
+    func timeSlotsRunEveryHalfHourFromSevenToEight() {
+        #expect(Menu.timeSlots.first == "7:00 AM")
+        #expect(Menu.timeSlots.last == "8:00 PM")
+        #expect(Menu.timeSlots.contains("12:30 PM"))
+        #expect(Menu.timeSlots.contains("4:30 PM"))
+        #expect(Set(Menu.timeSlots).count == Menu.timeSlots.count)
+    }
+
+    @Test
+    func pickupDaysCoverTheWholeWeekStartingSunday() {
+        #expect(PickupDay.allCases.count == 7)
+        #expect(PickupDay.allCases.first == .sunday)
+        #expect(PickupDay.allCases.map(\.rawValue) == [
+            "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+        ])
     }
 
     @Test

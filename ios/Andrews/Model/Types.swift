@@ -119,7 +119,12 @@ struct PickupLocation: Codable, Identifiable, Hashable {
 
 enum PickupDay: String, Codable, CaseIterable, Hashable {
     case sunday = "Sunday"
+    case monday = "Monday"
+    case tuesday = "Tuesday"
     case wednesday = "Wednesday"
+    case thursday = "Thursday"
+    case friday = "Friday"
+    case saturday = "Saturday"
 }
 
 enum Fulfillment: String, Codable, Hashable {

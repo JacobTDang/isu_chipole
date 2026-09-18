@@ -102,15 +102,14 @@ struct CheckoutView: View {
                     Text("\(fulfillmentLabel) day")
                         .font(.body(15))
                         .foregroundStyle(Color.inkSoft)
-                    Picker("\(fulfillmentLabel) day", selection: $day) {
-                        ForEach(PickupDay.allCases, id: \.self) { pickupDay in
-                            Text(pickupDay.rawValue).tag(pickupDay)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
+                        .padding(.horizontal, 16)
+                    ScrollingSegments(
+                        options: PickupDay.allCases.map { (id: $0, label: $0.rawValue) },
+                        selection: $day
+                    )
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 12)
+                .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.card)
 
                 Button {

@@ -71,10 +71,11 @@ struct BagRow: View {
                 }
             }
 
+            QuantityStepper(value: quantity, range: 1...10)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Quantity for \(title)")
+
             HStack(spacing: 8) {
-                QuantityStepper(value: quantity, range: 1...10)
-                    .accessibilityLabel("Quantity for \(title)")
-                Spacer(minLength: 0)
                 NavigationLink {
                     BuilderView(mode: .edit(item.id))
                 } label: {
@@ -93,6 +94,7 @@ struct BagRow: View {
                     actionLabel("Remove")
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Remove \(title) from order")
             }
         }
         .padding(.horizontal, 16)
@@ -104,8 +106,9 @@ struct BagRow: View {
         Text(text)
             .font(.body(15, weight: .semibold))
             .foregroundStyle(Color.cardinal)
-            .padding(.horizontal, 12)
-            .frame(minHeight: 44)
+            .lineLimit(1)
+            .fixedSize()
+            .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())
     }
 }

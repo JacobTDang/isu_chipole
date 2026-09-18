@@ -21,6 +21,7 @@ final class FlowTests: XCTestCase {
 
     func testFullWalkthrough() throws {
         resetIfSignedIn()
+        var chosenDate = ""
 
         step("login") {
             let email = try require(app.textFields["you@iastate.edu"], "ISU email field")
@@ -108,7 +109,23 @@ final class FlowTests: XCTestCase {
             let address = try require(app.textFields["Friley Hall, room 2310"], "Deliver to field")
             address.tap()
             address.typeText("Friley Hall, room 2310\n")
-            try require(app.staticTexts["Delivery day"], "Delivery day label")
+
+            let defaultDate = try Self.defaultDateISO()
+            let dateRow = try require(app.buttons.matching(labelBeginsWith: "Delivery date").firstMatch, "Delivery date row")
+            guard dateRow.label.contains(Self.formatted(defaultDate)) else {
+                throw MissingElement(description: "Delivery date row showing \(Self.formatted(defaultDate)), found \(dateRow.label)")
+            }
+            dateRow.tap()
+            try require(app.buttons["Next month"], "calendar sheet")
+            settle()
+            snap("06b-calendar")
+            chosenDate = try pickDay(after: defaultDate)
+            try require(app.buttons.matching(labelContains: Self.formatted(chosenDate)).firstMatch, "Delivery date row showing \(Self.formatted(chosenDate))")
+
+            try require(app.buttons.matching(labelBeginsWith: "Delivery time").firstMatch, "Delivery time row").tap()
+            try require(app.buttons["7:30 AM"], "7:30 AM slot").tap()
+            try require(app.buttons.matching(labelContains: "7:30 AM").firstMatch, "Delivery time row showing 7:30 AM")
+
             let promo = try require(app.textFields["Enter code"], "promo field")
             scrollIntoView(promo, bottomInset: 340)
             promo.tap()
@@ -117,7 +134,7 @@ final class FlowTests: XCTestCase {
             try require(staticText(containing: "Promo"), "Promo line")
             try require(app.staticTexts["Delivery"], "Delivery ticket line")
             try require(staticText(containing: "$56.73"), "total $56.73")
-            try scrollFormToTop(until: app.staticTexts["Delivery day"], "Delivery day label")
+            try scrollFormToTop(until: dateRow, "Delivery date row")
             settle()
             snap("06-checkout")
         }
@@ -128,10 +145,12 @@ final class FlowTests: XCTestCase {
                 throw MissingElement(description: "enabled Place order button after entering an address")
             }
             placeOrder.tap()
-            try require(app.staticTexts["See you Sunday."], "See you Sunday.")
+            let weekday = Self.weekday(chosenDate)
+            try require(app.staticTexts["See you \(weekday)."], "See you \(weekday).")
             try require(app.staticTexts["Deliver to"], "Deliver to ticket line")
             try require(app.staticTexts["Friley Hall, room 2310"], "delivery address on the ticket")
-            try require(app.staticTexts["Arrives at 4:30 PM"], "Arrives at 4:30 PM")
+            try require(app.staticTexts[Self.formatted(chosenDate)], "\(Self.formatted(chosenDate)) on the ticket")
+            try require(app.staticTexts["Arrives at 7:30 AM"], "Arrives at 7:30 AM")
             try require(app.staticTexts["$56.73"], "total $56.73")
             settle()
             snap("07-confirmation")
@@ -143,9 +162,75 @@ final class FlowTests: XCTestCase {
             try require(app.staticTexts["Account"], "Account title")
             scrollListToTop()
             try require(app.staticTexts["56 pts"], "56 pts")
+            try require(staticText(containing: Self.formatted(chosenDate)), "\(Self.formatted(chosenDate)) in order history")
             settle()
             snap("08-account")
         }
+    }
+
+    // MARK: - Dates
+
+    /// Mirrors `Schedule.defaultSchedule`: today, unless the last slot at
+    /// 8:00 PM is under 30 minutes away, in which case tomorrow.
+    private static func defaultDateISO(now: Date = Date()) throws -> String {
+        let calendar = Calendar.current
+        var day = calendar.startOfDay(for: now)
+        let lastSlot = try XCTUnwrap(calendar.date(bySettingHour: 20, minute: 0, second: 0, of: day))
+        if now.addingTimeInterval(30 * 60) > lastSlot {
+            day = try XCTUnwrap(calendar.date(byAdding: .day, value: 1, to: day))
+        }
+        return formatter("yyyy-MM-dd").string(from: day)
+    }
+
+    /// "Thu, Sep 24", the same pattern the app uses.
+    private static func formatted(_ iso: String) -> String {
+        formatter("EEE, MMM d").string(from: date(iso))
+    }
+
+    private static func weekday(_ iso: String) -> String {
+        formatter("EEEE").string(from: date(iso))
+    }
+
+    private static func date(_ iso: String) -> Date {
+        guard let date = formatter("yyyy-MM-dd").date(from: iso) else {
+            preconditionFailure("Malformed date \(iso)")
+        }
+        return date
+    }
+
+    private static func formatter(_ pattern: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar.current
+        formatter.timeZone = Calendar.current.timeZone
+        formatter.dateFormat = pattern
+        return formatter
+    }
+
+    /// Day cells carry their ISO date as label. Picks the first enabled day
+    /// after `iso` in the visible month, moving to the next month when the
+    /// visible one has none left, and returns the chosen ISO date.
+    private func pickDay(after iso: String) throws -> String {
+        let dayCells = app.buttons.matching(NSPredicate(format: "label MATCHES %@ AND enabled == YES", "\\d{4}-\\d{2}-\\d{2}"))
+        for _ in 0..<2 {
+            let candidates = dayCells.allElementsBoundByIndex.map { $0.label }.filter { $0 > iso }.sorted()
+            if let chosen = candidates.first {
+                let cell = app.buttons[chosen]
+                if !cell.isHittable {
+                    app.swipeUp(velocity: .slow)
+                    settle(0.6)
+                }
+                guard cell.isHittable else {
+                    throw MissingElement(description: "hittable day cell \(chosen)")
+                }
+                cell.tap()
+                settle(0.6)
+                return chosen
+            }
+            try require(app.buttons["Next month"], "Next month button").tap()
+            settle(0.6)
+        }
+        throw MissingElement(description: "an enabled day after \(iso)")
     }
 
     // MARK: - Flow helpers

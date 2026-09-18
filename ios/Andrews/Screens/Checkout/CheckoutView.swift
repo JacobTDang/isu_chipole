@@ -7,6 +7,7 @@ struct CheckoutView: View {
     @State private var fulfillment: Fulfillment = .pickup
     @State private var address = ""
     @State private var location = Menu.locations[0]
+    @State private var now: Date
     @State private var date: String
     @State private var time: String
     @State private var locationOpen = false
@@ -16,7 +17,9 @@ struct CheckoutView: View {
     @State private var placedOrder: Order?
 
     init() {
-        let initial = Schedule.defaultSchedule(now: Date())
+        let now = Date()
+        let initial = Schedule.defaultSchedule(now: now)
+        _now = State(initialValue: now)
         _date = State(initialValue: initial.date)
         _time = State(initialValue: initial.time)
     }
@@ -44,7 +47,7 @@ struct CheckoutView: View {
             LocationSheet(selection: $location)
         }
         .sheet(isPresented: $dateOpen) {
-            DateSheet(title: "\(fulfillmentLabel) date", selection: $date)
+            DateSheet(title: "\(fulfillmentLabel) date", selection: $date, now: now)
         }
         .sheet(isPresented: $timeOpen) {
             TimeSheet(title: "\(fulfillmentLabel) time", slots: availableSlots, selection: $time)
@@ -55,7 +58,21 @@ struct CheckoutView: View {
     }
 
     private var availableSlots: [String] {
-        Schedule.availableSlots(dateISO: date, now: Date())
+        Schedule.availableSlots(dateISO: date, now: now)
+    }
+
+    /// Time moves on while the screen sits open. Before a sheet opens or an
+    /// order is placed, take the clock again: a date with nothing left falls
+    /// back to the default schedule, and a slot that has passed moves to the
+    /// first one still open.
+    private func refreshClock() {
+        now = Date()
+        if availableSlots.isEmpty {
+            let fallback = Schedule.defaultSchedule(now: now)
+            date = fallback.date
+            time = fallback.time
+        }
+        keepTimeAvailable()
     }
 
     /// A slot chosen for one date may already have passed on another; fall
@@ -92,9 +109,10 @@ struct CheckoutView: View {
         address.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Delivery needs somewhere to go before the order can be placed.
+    /// Delivery needs somewhere to go and the slot must still be open before
+    /// the order can be placed.
     private var canPlace: Bool {
-        !isPlacing && (!isDelivery || !cleanAddress.isEmpty)
+        !isPlacing && (!isDelivery || !cleanAddress.isEmpty) && availableSlots.contains(time)
     }
 
     private var form: some View {
@@ -124,6 +142,7 @@ struct CheckoutView: View {
                 }
 
                 Button {
+                    refreshClock()
                     dateOpen = true
                 } label: {
                     detailRow(label: "\(fulfillmentLabel) date", value: Schedule.formatDate(date))
@@ -131,6 +150,7 @@ struct CheckoutView: View {
                 .listRowBackground(Color.card)
 
                 Button {
+                    refreshClock()
                     timeOpen = true
                 } label: {
                     detailRow(label: "\(fulfillmentLabel) time", value: time)
@@ -252,6 +272,7 @@ struct CheckoutView: View {
     }
 
     private func placeOrder() {
+        refreshClock()
         guard canPlace else { return }
         isPlacing = true
         placedOrder = store.placeOrder(

@@ -39,6 +39,11 @@ struct ScheduleTests {
     }
 
     @Test
+    func todayKeepsTheLastSlotWhileItIsStillThirtyMinutesAway() {
+        #expect(Schedule.availableSlots(dateISO: "2026-09-18", now: at(19, 30)) == ["8:00 PM"])
+    }
+
+    @Test
     func todayHasNoSlotsOnceTheLastOneIsTooClose() {
         #expect(Schedule.availableSlots(dateISO: "2026-09-18", now: at(19, 45)).isEmpty)
     }

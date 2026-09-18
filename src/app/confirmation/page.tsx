@@ -9,7 +9,7 @@ import { Ticket } from "../../components/Ticket";
 import { mealType, preset } from "../../data/menu";
 import type { BagItem } from "../../data/types";
 import { itemPrice } from "../../lib/pricing";
-import { weekdayName } from "../../lib/schedule";
+import { formatDate, weekdayName } from "../../lib/schedule";
 import { useOrders } from "../../state/OrdersProvider";
 import styles from "./confirmation.module.css";
 
@@ -45,7 +45,7 @@ function Confirmation() {
   if (delivery && !order.address) throw new Error(`Delivery order ${order.id} has no address`);
   const lines = [
     delivery ? { label: "Deliver to", amount: order.address } : { label: "Pickup", amount: order.location.name },
-    { label: "Day", amount: weekdayName(order.date) },
+    { label: "Date", amount: formatDate(order.date) },
     { label: "Time", amount: order.time },
     ...order.items.map((item) => ({
       label: `${item.quantity}× ${itemName(item)}`,

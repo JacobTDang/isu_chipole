@@ -3,16 +3,11 @@
 import Link from "next/link";
 import type { Order } from "../../data/types";
 import { mealCount } from "../../lib/pricing";
+import { formatDate } from "../../lib/schedule";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-});
-
-const date = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
 });
 
 export function OrderHistory({
@@ -44,7 +39,7 @@ export function OrderHistory({
               <span className="min-w-0">
                 <span className="block font-semibold text-ink">{order.id}</span>
                 <span className="mt-0.5 block text-[13px] text-ink-soft">
-                  {date.format(new Date(order.placedAt))} · {count} {count === 1 ? "item" : "items"} · {currency.format(order.total)}
+                  {formatDate(order.date)} · {count} {count === 1 ? "item" : "items"} · {currency.format(order.total)}
                 </span>
               </span>
             </Link>

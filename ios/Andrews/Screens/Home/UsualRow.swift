@@ -57,9 +57,14 @@ struct UsualRow: View {
                     .monospacedDigit()
             }
 
-            Text("\(Pricing.mealCount(order.items)) meals")
-                .font(.body(17, weight: .semibold))
-                .foregroundStyle(Color.ink)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(Pricing.mealCount(order.items)) meals")
+                    .font(.body(17, weight: .semibold))
+                    .foregroundStyle(Color.ink)
+                Text(Schedule.formatDate(order.date))
+                    .font(.body(13))
+                    .foregroundStyle(Color.inkSoft)
+            }
 
             Button {
                 reorder(order)

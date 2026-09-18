@@ -33,7 +33,7 @@ struct OrderHistory: View {
                     Text(order.id)
                         .font(.body(17, weight: .semibold))
                         .foregroundStyle(Color.ink)
-                    Text("\(dateText(order.placedAt)) · \(count) \(count == 1 ? "item" : "items") · \(Pricing.money(order.total))")
+                    Text("\(Schedule.formatDate(order.date)) · \(count) \(count == 1 ? "item" : "items") · \(Pricing.money(order.total))")
                         .font(.body(13))
                         .foregroundStyle(Color.inkSoft)
                 }
@@ -51,10 +51,6 @@ struct OrderHistory: View {
             .fixedSize()
         }
         .padding(.vertical, 4)
-    }
-
-    private func dateText(_ date: Date) -> String {
-        date.formatted(.dateTime.month(.abbreviated).day().year())
     }
 
     private func reorder(_ order: Order) {

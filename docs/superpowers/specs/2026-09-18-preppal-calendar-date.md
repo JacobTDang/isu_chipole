@@ -30,7 +30,7 @@ Legacy orders that have `day` and no `date` load with `date` set to the first da
 - `nextDateForWeekday(fromISO, weekday)` for the legacy migration.
 - `monthGrid(yearMonth)` returns the six-by-seven grid of ISO dates or nulls used by the calendar, starting on Sunday.
 
-Test cases: at 2026-09-18 10:05 local, `availableSlots` for today starts at "10:30 AM" (10:05 plus 30 minutes rounds up to the next slot) and ends at "8:00 PM"; at 19:45 today has "8:00 PM" only... no: 19:45 plus 30 is 20:15, so today has none and `defaultSchedule` gives tomorrow at "7:00 AM"; at 06:00 today starts at "7:00 AM"; a date after today returns all 27; a past date returns none. `formatDate("2026-09-24")` is "Thu, Sep 24". `nextDateForWeekday("2026-09-18", "Sunday")` is "2026-09-20" and for "Friday" is "2026-09-18". `monthGrid("2026-09")` puts "2026-09-01" at index 2 (Tuesday) and has 30 dates.
+Test cases: at 2026-09-18 10:05 local, `availableSlots` for today starts at "11:00 AM" (a slot is shown only when it starts at least 30 minutes from now, so 10:30 is excluded) and ends at "8:00 PM"; at 19:30 today has "8:00 PM" only; at 19:45 today has none and `defaultSchedule` gives tomorrow at "7:00 AM"; at 06:00 today starts at "7:00 AM"; a date after today returns all 27; a past date returns none. `formatDate("2026-09-24")` is "Thu, Sep 24". `nextDateForWeekday("2026-09-18", "Sunday")` is "2026-09-20" and for "Friday" is "2026-09-18". `monthGrid("2026-09")` puts "2026-09-01" at index 2 (Tuesday) and has 30 dates.
 
 ## Tests
 

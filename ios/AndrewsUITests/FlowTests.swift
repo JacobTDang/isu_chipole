@@ -112,15 +112,17 @@ final class FlowTests: XCTestCase {
 
             let defaultDate = try Self.defaultDateISO()
             let dateRow = try require(app.buttons.matching(labelBeginsWith: "Delivery date").firstMatch, "Delivery date row")
-            guard dateRow.label.contains(Self.formatted(defaultDate)) else {
-                throw MissingElement(description: "Delivery date row showing \(Self.formatted(defaultDate)), found \(dateRow.label)")
+            let defaultLabel = try Self.formatted(defaultDate)
+            guard dateRow.label.contains(defaultLabel) else {
+                throw MissingElement(description: "Delivery date row showing \(defaultLabel), found \(dateRow.label)")
             }
             dateRow.tap()
             try require(app.buttons["Next month"], "calendar sheet")
             settle()
             snap("06b-calendar")
             chosenDate = try pickDay(after: defaultDate)
-            try require(app.buttons.matching(labelContains: Self.formatted(chosenDate)).firstMatch, "Delivery date row showing \(Self.formatted(chosenDate))")
+            let chosenLabel = try Self.formatted(chosenDate)
+            try require(app.buttons.matching(labelContains: chosenLabel).firstMatch, "Delivery date row showing \(chosenLabel)")
 
             try require(app.buttons.matching(labelBeginsWith: "Delivery time").firstMatch, "Delivery time row").tap()
             try require(app.buttons["7:30 AM"], "7:30 AM slot").tap()
@@ -145,11 +147,12 @@ final class FlowTests: XCTestCase {
                 throw MissingElement(description: "enabled Place order button after entering an address")
             }
             placeOrder.tap()
-            let weekday = Self.weekday(chosenDate)
+            let weekday = try Self.weekday(chosenDate)
+            let chosenLabel = try Self.formatted(chosenDate)
             try require(app.staticTexts["See you \(weekday)."], "See you \(weekday).")
             try require(app.staticTexts["Deliver to"], "Deliver to ticket line")
             try require(app.staticTexts["Friley Hall, room 2310"], "delivery address on the ticket")
-            try require(app.staticTexts[Self.formatted(chosenDate)], "\(Self.formatted(chosenDate)) on the ticket")
+            try require(app.staticTexts[chosenLabel], "\(chosenLabel) on the ticket")
             try require(app.staticTexts["Arrives at 7:30 AM"], "Arrives at 7:30 AM")
             try require(app.staticTexts["$56.73"], "total $56.73")
             settle()
@@ -162,7 +165,8 @@ final class FlowTests: XCTestCase {
             try require(app.staticTexts["Account"], "Account title")
             scrollListToTop()
             try require(app.staticTexts["56 pts"], "56 pts")
-            try require(staticText(containing: Self.formatted(chosenDate)), "\(Self.formatted(chosenDate)) in order history")
+            let chosenLabel = try Self.formatted(chosenDate)
+            try require(staticText(containing: chosenLabel), "\(chosenLabel) in order history")
             settle()
             snap("08-account")
         }
@@ -183,17 +187,17 @@ final class FlowTests: XCTestCase {
     }
 
     /// "Thu, Sep 24", the same pattern the app uses.
-    private static func formatted(_ iso: String) -> String {
-        formatter("EEE, MMM d").string(from: date(iso))
+    private static func formatted(_ iso: String) throws -> String {
+        try formatter("EEE, MMM d").string(from: date(iso))
     }
 
-    private static func weekday(_ iso: String) -> String {
-        formatter("EEEE").string(from: date(iso))
+    private static func weekday(_ iso: String) throws -> String {
+        try formatter("EEEE").string(from: date(iso))
     }
 
-    private static func date(_ iso: String) -> Date {
+    private static func date(_ iso: String) throws -> Date {
         guard let date = formatter("yyyy-MM-dd").date(from: iso) else {
-            preconditionFailure("Malformed date \(iso)")
+            throw MissingElement(description: "a chosen date, got \"\(iso)\"")
         }
         return date
     }

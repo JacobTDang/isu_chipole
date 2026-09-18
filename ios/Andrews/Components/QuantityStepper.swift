@@ -11,7 +11,7 @@ struct QuantityStepper: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            stepButton(systemName: "minus", disabled: value <= range.lowerBound) {
+            stepButton(systemName: "minus", label: "Decrease quantity", disabled: value <= range.lowerBound) {
                 value -= 1
             }
 
@@ -22,7 +22,7 @@ struct QuantityStepper: View {
                 .monospacedDigit()
                 .accessibilityLabel("Quantity \(value)")
 
-            stepButton(systemName: "plus", disabled: value >= range.upperBound) {
+            stepButton(systemName: "plus", label: "Increase quantity", disabled: value >= range.upperBound) {
                 value += 1
             }
         }
@@ -35,6 +35,7 @@ struct QuantityStepper: View {
 
     private func stepButton(
         systemName: String,
+        label: String,
         disabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
@@ -46,6 +47,7 @@ struct QuantityStepper: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
         .disabled(disabled)
         .opacity(disabled ? 0.35 : 1)
     }
